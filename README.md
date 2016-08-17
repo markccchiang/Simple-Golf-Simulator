@@ -1,1 +1,1 @@
-# Simple_Golf_Simulator
+# Simple-Golf-Simulator
