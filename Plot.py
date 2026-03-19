@@ -642,7 +642,7 @@ def Plot(entries):
                    show_arm4_rod_y[step*2-2-k*interval*2:step*2-k*interval*2], 'k-', \
                    linewidth=2)
       plt.plot(show_O_x, show_O_y, 'm.-', label="Arm axis", markersize=13, linewidth=5)
-      plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+      plt.legend(loc='best')
     #--------------------------------------------------
     if (Fig2 == 'True'): 
       plt.figure(2)
@@ -661,7 +661,7 @@ def Plot(entries):
                label=r"$\theta_{\overrightarrow{V_C}}$", markersize=10, linewidth=5)
       plt.plot(show_t[:step], show_omega[:step]*180.0/PI, 'y-', \
                label=r"$\omega$", markersize=10, linewidth=5)
-      plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+      plt.legend(loc='best')
     #--------------------------------------------------
     if (Fig3 == 'True'): 
       plt.figure(3)
@@ -672,7 +672,7 @@ def Plot(entries):
                label=r"$\dot{\alpha}$", markersize=10, linewidth=5)
       plt.plot(show_t[:step], show_beta_dot[:step]*180.0/PI, 'b-', \
                label=r"$\dot{\beta}$", markersize=10, linewidth=5)
-      plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+      plt.legend(loc='best')
     #--------------------------------------------------
     if (Fig4 == 'True'): 
       plt.figure(4)
@@ -683,7 +683,7 @@ def Plot(entries):
                label=r"$\ddot{\alpha}$", markersize=10, linewidth=5)
       plt.plot(show_t[:step], show_beta_ddot[:step]*180.0/PI, 'b-', \
                label=r"$\ddot{\beta}$", markersize=10, linewidth=5)
-      plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+      plt.legend(loc='best')
     #--------------------------------------------------
     if (Fig5 == 'True'): 
       plt.figure(5)
@@ -702,7 +702,7 @@ def Plot(entries):
                label=r"$Q_\alpha$", markersize=10, linewidth=5)
       plt.plot(show_t[:step], -1*show_Q_beta[:step], 'b-', \
                label=r"$-Q_\beta$", markersize=10, linewidth=5)
-      plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+      plt.legend(loc='best')
     #--------------------------------------------------
     if (Fig7 == 'True'):
         plt.figure(7)
