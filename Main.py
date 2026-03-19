@@ -14,575 +14,318 @@ import Plot2 as pl2
 if __name__ == '__main__':
 
    root = Tk()
-
    root.title("The Simple Golf Simulator (Copyright @ 2026 C.-C. Chiang)")
+
+   style = ttk.Style()
+   if sys.platform == 'darwin':
+       style.theme_use('aqua')
+   else:
+       style.theme_use('clam')
+
+   style.configure('Section.TLabelframe.Label', font=('Helvetica', 11, 'bold'))
+   style.configure('Action.TButton', font=('Helvetica', 10, 'bold'))
 
    entries = {}
 
-   row = Frame(root)
-
    title_size = 10
    font_size = 10
-   set_width = 50
+   label_font = ("Helvetica", font_size)
+   entry_width = 12
    border_width = 2
+   pad_x = 6
+   pad_y = 3
+   section_pad = (10, 5)
 
-   i = 0
+   # --- Scrollable canvas ---
+   canvas = Canvas(root, highlightthickness=0)
+   scrollbar = ttk.Scrollbar(root, orient=VERTICAL, command=canvas.yview)
+   outer_frame = ttk.Frame(canvas)
 
-   #
-   # 1. Set golfer parameters
-   # 
-   lab = Label(row, width=set_width, text="(I) Set golfer parameters", background="lightgreen", font=("bold", title_size)).grid(row=i, columnspan=2)
-   i = i+1
+   outer_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+   canvas.create_window((0, 0), window=outer_frame, anchor="nw")
+   canvas.configure(yscrollcommand=scrollbar.set)
 
-   lab = Label(row, width=set_width, text="  1. Gender: ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   variable = StringVar(row)
-   variable.set("Male")
-   w = OptionMenu(row, variable, "Male", "Female", "Average").grid(row=i, column=1, sticky="ew")
-   entries['Gender'] = variable
-   i = i+1
+   def _on_mousewheel(event):
+       if sys.platform == 'darwin':
+           canvas.yview_scroll(-1 * event.delta, "units")
+       else:
+           canvas.yview_scroll(-1 * (event.delta // 120), "units")
+   canvas.bind_all("<MouseWheel>", _on_mousewheel)
 
-   lab = Label(row, width=set_width, text="  2. Weight (kg): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"70.0")
-   ent.grid(row=i, column=1)
-   entries['Weight'] = ent
-   i = i+1
+   scrollbar.pack(side=RIGHT, fill=Y)
+   canvas.pack(side=LEFT, fill=BOTH, expand=True)
 
-   lab = Label(row, width=set_width, text="  3. Shoulder radius (m): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"0.17")
-   ent.grid(row=i, column=1)
-   entries['R_S'] = ent
-   i = i+1
+   # Two-column layout: left panel and right panel
+   left_panel = ttk.Frame(outer_frame)
+   left_panel.grid(row=0, column=0, sticky="n", padx=10, pady=10)
 
-   lab = Label(row, width=set_width, text="  4. Arm length (m): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"0.6")
-   ent.grid(row=i, column=1)
-   entries['R_A'] = ent
-   i = i+1
+   sep = ttk.Separator(outer_frame, orient=VERTICAL)
+   sep.grid(row=0, column=1, sticky="ns", padx=5, pady=10)
 
-   ttk.Separator(row, orient=HORIZONTAL).grid(row=i, columnspan=2, sticky="ew")
-   i = i+1
+   right_panel = ttk.Frame(outer_frame)
+   right_panel.grid(row=0, column=2, sticky="n", padx=10, pady=10)
 
-   #
-   # 2. Set club parameters
-   #
-   lab = Label(row, width=set_width, text="(II) Set club parameters", background="lightgreen", font=("bold", title_size)).grid(row=i, columnspan=2)
-   i = i+1
+   # =========================================================================
+   # LEFT PANEL
+   # =========================================================================
 
-   lab = Label(row, width=set_width, text="  5. Head mass (kg): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"0.2")
-   ent.grid(row=i, column=1)
-   entries['M_C_head'] = ent
-   i = i+1
+   def add_label_entry(parent, row, text, default, key):
+       ttk.Label(parent, text=text, font=label_font, anchor='w').grid(
+           row=row, column=0, sticky='w', padx=pad_x, pady=pad_y)
+       ent = ttk.Entry(parent, width=entry_width)
+       ent.insert(0, default)
+       ent.grid(row=row, column=1, sticky='e', padx=pad_x, pady=pad_y)
+       entries[key] = ent
+       return ent
 
-   lab = Label(row, width=set_width, text="  6. Shaft mass (kg): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"0.1")
-   ent.grid(row=i, column=1)
-   entries['M_C_shaft'] = ent
-   i = i+1
+   def add_option_menu(parent, row, text, default, options, key):
+       ttk.Label(parent, text=text, font=label_font, anchor='w').grid(
+           row=row, column=0, sticky='w', padx=pad_x, pady=pad_y)
+       variable = StringVar(parent)
+       variable.set(default)
+       om = ttk.OptionMenu(parent, variable, default, *options)
+       om.grid(row=row, column=1, sticky='ew', padx=pad_x, pady=pad_y)
+       entries[key] = variable
 
-   lab = Label(row, width=set_width, text="  7. Head length (m): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"0.1")
-   ent.grid(row=i, column=1)
-   entries['L_C_head'] = ent
-   i = i+1
+   # --- Section I: Golfer Parameters ---
+   sec1 = ttk.LabelFrame(left_panel, text="  (I) Golfer Parameters  ", style='Section.TLabelframe')
+   sec1.grid(row=0, column=0, sticky='ew', pady=section_pad)
 
-   lab = Label(row, width=set_width, text="  8. Shaft length (m): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"1.0")
-   ent.grid(row=i, column=1)
-   entries['L_C_shaft'] = ent
-   i = i+1
+   add_option_menu(sec1, 0, "1. Gender:", "Male", ["Male", "Female", "Average"], 'Gender')
+   add_label_entry(sec1, 1, "2. Weight (kg):", "70.0", 'Weight')
+   add_label_entry(sec1, 2, "3. Shoulder radius (m):", "0.17", 'R_S')
+   add_label_entry(sec1, 3, "4. Arm length (m):", "0.6", 'R_A')
 
-   ttk.Separator(row, orient=HORIZONTAL).grid(row=i, columnspan=2, sticky="ew")
-   i = i+1
+   # --- Section II: Club Parameters ---
+   sec2 = ttk.LabelFrame(left_panel, text="  (II) Club Parameters  ", style='Section.TLabelframe')
+   sec2.grid(row=1, column=0, sticky='ew', pady=section_pad)
 
-   #
-   # 3. Set swing conditions
-   #
-   lab = Label(row, width=set_width, text="(III) Set swing conditions", background="lightgreen", font=("bold", title_size)).grid(row=i, columnspan=2)
-   i = i+1
+   add_label_entry(sec2, 0, "5. Head mass (kg):", "0.2", 'M_C_head')
+   add_label_entry(sec2, 1, "6. Shaft mass (kg):", "0.1", 'M_C_shaft')
+   add_label_entry(sec2, 2, "7. Head length (m):", "0.1", 'L_C_head')
+   add_label_entry(sec2, 3, "8. Shaft length (m):", "1.0", 'L_C_shaft')
 
-   lab = Label(row, width=set_width, text="  9. Swing plane angle (degree): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"60")
-   ent.grid(row=i, column=1)
-   entries['phi'] = ent
-   i = i+1
+   # --- Section III: Swing Conditions ---
+   sec3 = ttk.LabelFrame(left_panel, text="  (III) Swing Conditions  ", style='Section.TLabelframe')
+   sec3.grid(row=2, column=0, sticky='ew', pady=section_pad)
 
-   lab = Label(row, width=set_width, text="10. Initial arm angle (degree): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"135")
-   ent.grid(row=i, column=1)
-   entries['theta'] = ent
-   i = i+1
+   add_label_entry(sec3, 0, "9. Swing plane angle (deg):", "60", 'phi')
+   add_label_entry(sec3, 1, "10. Initial arm angle (deg):", "135", 'theta')
+   add_label_entry(sec3, 2, "*11. Impact arm angle (deg):", "0", 'theta_final')
+   add_label_entry(sec3, 3, "12. Initial wrist-cock angle (deg):", "120", 'beta')
+   add_label_entry(sec3, 4, "*13. Impact wrist-cock angle (deg):", "0", 'beta_final')
+   add_label_entry(sec3, 5, "*14. Horizontal accel. (m/s\u00b2):", "0", 'a_x')
+   add_label_entry(sec3, 6, "*15. Vertical accel. (m/s\u00b2):", "0", 'a_y')
+   add_option_menu(sec3, 7, "16. Swing type:", "Type I", ["Type I", "Type II"], 'Type')
 
-   lab = Label(row, width=set_width, text="*11. Impact arm angle (degree): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"0")
-   ent.grid(row=i, column=1)
-   entries['theta_final'] = ent
-   i = i+1
+   # --- Section IV: Swing Torques ---
+   sec4 = ttk.LabelFrame(left_panel, text="  (IV) Swing Torques  ", style='Section.TLabelframe')
+   sec4.grid(row=3, column=0, sticky='ew', pady=section_pad)
 
-   lab = Label(row, width=set_width, text="12. Initial wrist-cock angle (degree): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"120")
-   ent.grid(row=i, column=1)
-   entries['beta'] = ent
-   i = i+1
+   add_label_entry(sec4, 0, "17. Arm torque (N-m):", "100", 'Q_alpha')
+   add_label_entry(sec4, 1, "*18. Raising time of arm torque (s):", "0.01", 'tau_Q_alpha')
 
-   lab = Label(row, width=set_width, text="*13. Impact wrist-cock angle (degree): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"0")
-   ent.grid(row=i, column=1)
-   entries['beta_final'] = ent
-   i = i+1
-
-   lab = Label(row, width=set_width, text="*14. Horizontal acceleration (m/sec^2): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"0")
-   ent.grid(row=i, column=1)
-   entries['a_x'] = ent
-   i = i+1
-
-   lab = Label(row, width=set_width, text="*15. Vertical acceleration (m/sec^2): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"0")
-   ent.grid(row=i, column=1)
-   entries['a_y'] = ent
-   i = i+1
-
-   lab = Label(row, width=set_width, text="16. Choose swing type: ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   variable = StringVar(row)
-   variable.set("Type I")
-   w = OptionMenu(row, variable, "Type I", "Type II").grid(row=i, column=1, sticky="ew")
-   entries['Type'] = variable
-   i = i+1
-
-   ttk.Separator(row, orient=HORIZONTAL).grid(row=i, columnspan=2, sticky="ew")
-   i = i+1
-
-   #
-   # 4. Set swing torques
-   #
-   lab = Label(row, width=set_width, text="(IV) Set swing torques", background="lightgreen", font=("bold", title_size)).grid(row=i, columnspan=2)
-   i = i+1
-
-   lab = Label(row, width=set_width, text="17. Arm torque (N-m): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"100")
-   ent.grid(row=i, column=1)
-   entries['Q_alpha'] = ent
-   i = i+1
-
-   lab = Label(row, width=set_width, text="*18. Raising time of arm torque (sec): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"0.01")
-   ent.grid(row=i, column=1)
-   entries['tau_Q_alpha'] = ent
-   i = i+1
-
-   lab = Label(row, width=set_width, text="19. Wrist-cock torque (N-m): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.config(fg = "grey", bg = "yellow")
-   ent.insert(0,"N/A")
-   ent.grid(row=i, column=1)
+   ttk.Label(sec4, text="19. Wrist-cock torque (N-m):", font=label_font, anchor='w').grid(
+       row=2, column=0, sticky='w', padx=pad_x, pady=pad_y)
+   ent = ttk.Entry(sec4, width=entry_width)
+   ent.insert(0, "N/A")
+   ent.state(['readonly'])
+   ent.grid(row=2, column=1, sticky='e', padx=pad_x, pady=pad_y)
    entries['Q_beta'] = ent
-   i = i+1
 
-   lab = Label(row, width=set_width, text="**20. At which arm angle the wrist-cock torque started (degree): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"135")
-   ent.grid(row=i, column=1)
-   entries['set_theta'] = ent
-   i = i+1
+   add_label_entry(sec4, 3, "**20. Wrist-cock torque start angle (deg):", "135", 'set_theta')
 
-   lab = Label(row, width=set_width, \
-               text="(**) The angle in item 20 should be equal or smaller than the initial arm angle in item 10.", \
-               fg="red", font=("Times", font_size), anchor='w').grid(row=i, column=0, columnspan=2, sticky="ew")
-   i = i+1
+   note = ttk.Label(sec4, text="(**) Item 20 should be \u2264 item 10.",
+                     foreground="red", font=("Helvetica", 9))
+   note.grid(row=4, column=0, columnspan=2, sticky='w', padx=pad_x, pady=(0, pad_y))
 
-   lab = Label(row, width=set_width, text="*21. Raising time of wrist-cock torque (sec): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"0.01")
-   ent.grid(row=i, column=1)
-   entries['tau_Q_beta'] = ent
-   i = i+1
-
-   lab = Label(row, width=set_width, text="*22. Minimum of wrist-cock torque (N-m): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"-50")
-   ent.grid(row=i, column=1)
-   entries['Q_beta_min'] = ent
-   i = i+1
-
-   lab = Label(row, width=set_width, text="*23. Maximum of wrist-cock torque (N-m): ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   ent = Entry(row)
-   ent.insert(0,"0")
-   ent.grid(row=i, column=1)
-   entries['Q_beta_max'] = ent
-   i = i+1
+   add_label_entry(sec4, 5, "*21. Raising time of wrist-cock torque (s):", "0.01", 'tau_Q_beta')
+   add_label_entry(sec4, 6, "*22. Min wrist-cock torque (N-m):", "-50", 'Q_beta_min')
+   add_label_entry(sec4, 7, "*23. Max wrist-cock torque (N-m):", "0", 'Q_beta_max')
 
    ents1 = entries
 
-   b1 = Button(row, text='Click to optimize wrist-cock torque (fast)', \
-               relief=GROOVE, borderwidth=border_width, command=(lambda e1=ents1: pl.Optimize_Q_beta(e1)), \
-               font=("bold", title_size), bg="yellow")
-   b1.grid(row=i, columnspan=2, sticky="ew")
-   i = i+1
+   btn_frame1 = ttk.Frame(sec4)
+   btn_frame1.grid(row=8, column=0, columnspan=2, sticky='ew', padx=pad_x, pady=pad_y)
+   Button(btn_frame1, text='Optimize wrist-cock torque (fast)',
+          relief=GROOVE, borderwidth=border_width,
+          command=(lambda e1=ents1: pl.Optimize_Q_beta(e1)),
+          font=("Helvetica", 9, "bold"), bg="#FFD700", activebackground="#FFE44D"
+          ).pack(fill=X, pady=2)
+   Button(btn_frame1, text='Optimize wrist-cock torque (complete)',
+          relief=GROOVE, borderwidth=border_width,
+          command=(lambda e1=ents1: pl.Optimize_Q_beta_2(e1)),
+          font=("Helvetica", 9, "bold"), bg="#FFD700", activebackground="#FFE44D"
+          ).pack(fill=X, pady=2)
 
-   b11 = Button(row, text='Click to optimize wrist-cock torque (complete)', \
-                relief=GROOVE, borderwidth=border_width, command=(lambda e1=ents1: pl.Optimize_Q_beta_2(e1)), \
-                font=("bold", title_size), bg="yellow")
-   b11.grid(row=i, columnspan=2, sticky="ew")
-   i = i+1
+   # --- Section V: Simulate the Swing ---
+   sec5 = ttk.LabelFrame(left_panel, text="  (V) Simulate the Swing  ", style='Section.TLabelframe')
+   sec5.grid(row=4, column=0, sticky='ew', pady=section_pad)
 
-   ttk.Separator(row, orient=HORIZONTAL).grid(row=i, columnspan=2, sticky="ew")
-   i = i+1
+   add_option_menu(sec5, 0, "24. Simulation method:", "Solution 3",
+                   ["Solution 1", "Solution 2", "Solution 3"], 'Method')
 
-   #
-   # 5. Simulate the swing
-   #
-   lab = Label(row, width=set_width, text="(V) Simulate the swing", background="lightgreen", font=("bold", title_size)).grid(row=i, columnspan=2)
-   i = i+1
- 
-   lab = Label(row, width=set_width, text="24. Choose simulation method: ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   variable = StringVar(row)
-   variable.set("Solution 3")
-   w = OptionMenu(row, variable, "Solution 1", "Solution 2", "Solution 3").grid(row=i, column=1, sticky="ew")
-   entries['Method'] = variable
-   i = i+1
+   ttk.Label(sec5, text="25. Results to plot:", font=label_font, anchor='w').grid(
+       row=1, column=0, columnspan=2, sticky='w', padx=pad_x, pady=pad_y)
 
-   lab = Label(row, width=set_width, text="25. Choose the results to plot: ", font=("Times", font_size), anchor='w').grid(row=i, column=0)
-   i = i+1
+   check_frame = ttk.Frame(sec5)
+   check_frame.grid(row=2, column=0, columnspan=2, sticky='w', padx=pad_x)
 
-   var = BooleanVar()
-   c = Checkbutton(row, text="Tracks", font=("Times", font_size), variable=var)
-   c.grid(row=i, column=0, sticky="w")
-   entries['Fig1'] = var
+   fig_checks = [
+       ("Tracks", 'Fig1'),
+       ("Angles", 'Fig2'),
+       ("Angular velocities", 'Fig3'),
+       ("Angular accelerations", 'Fig4'),
+       ("Clubhead velocity", 'Fig5'),
+       ("Torques", 'Fig6'),
+       ("Arm length", 'Fig8'),
+       ("1st and 2nd moments", 'Fig7'),
+   ]
+   for idx, (label, key) in enumerate(fig_checks):
+       var = BooleanVar()
+       c = ttk.Checkbutton(check_frame, text=label, variable=var)
+       c.grid(row=idx // 2, column=idx % 2, sticky='w', padx=8, pady=2)
+       entries[key] = var
 
-   var = BooleanVar()
-   c = Checkbutton(row, text="Angles", font=("Times", font_size), variable=var)
-   c.grid(row=i, column=1, sticky="w")
-   entries['Fig2'] = var
-   i = i+1
+   # =========================================================================
+   # RIGHT PANEL
+   # =========================================================================
 
-   var = BooleanVar()
-   c = Checkbutton(row, text="Angular velocities", font=("Times", font_size), variable=var)
-   c.grid(row=i, column=0, sticky="w")
-   entries['Fig3'] = var
+   # --- Swing Results ---
+   sec_res = ttk.LabelFrame(right_panel, text="  Swing Results  ", style='Section.TLabelframe')
+   sec_res.grid(row=0, column=0, sticky='ew', pady=section_pad)
 
-   var = BooleanVar()
-   c = Checkbutton(row, text="Angular accelerations", font=("Times", font_size), variable=var)
-   c.grid(row=i, column=1, sticky="w")
-   entries['Fig4'] = var
-   i = i+1
+   result_fields = [
+       ("26. Clubhead impact velocity (m/s):", 'VC'),
+       ("27. Systematic error of velocity (m/s):", 'error_VC'),
+       ("28. Clubhead impact angle (deg):", 'VC_angle'),
+       ("29. Systematic error of angle (deg):", 'error_VC_angle'),
+   ]
+   for idx, (text, key) in enumerate(result_fields):
+       ttk.Label(sec_res, text=text, font=label_font, anchor='w').grid(
+           row=idx, column=0, sticky='w', padx=pad_x, pady=pad_y)
+       ent = ttk.Entry(sec_res, width=entry_width)
+       ent.insert(0, "N/A")
+       ent.state(['readonly'])
+       ent.grid(row=idx, column=1, sticky='e', padx=pad_x, pady=pad_y)
+       entries[key] = ent
 
-   var = BooleanVar()
-   c = Checkbutton(row, text="Clubhead velocity", font=("Times", font_size), variable=var)
-   c.grid(row=i, column=0, sticky="w")
-   entries['Fig5'] = var
-
-   var = BooleanVar()
-   c = Checkbutton(row, text="Torques", font=("Times", font_size), variable=var)
-   c.grid(row=i, column=1, sticky="w")
-   entries['Fig6'] = var
-   i = i+1
-
-   var = BooleanVar()
-   c = Checkbutton(row, text="Arm length", font=("Times", font_size), variable=var)
-   c.grid(row=i, column=0, sticky="w")
-   entries['Fig8'] = var
-
-   var = BooleanVar()
-   c = Checkbutton(row, text="1st and 2nd moments", font=("Times", font_size), variable=var)
-   c.grid(row=i, column=1, sticky="w")
-   entries['Fig7'] = var
-   i = i+2
-
-   sep = ttk.Separator(row, orient = "vertical")
-   sep.rowconfigure(0, weight = 1)
-   sep.columnconfigure(1, weight = 1)
-   sep.grid(row = 0, rowspan=i, column = 2, padx = 5, sticky = "nesw")
-
-   #print i
-   ttk.Separator(row, orient=HORIZONTAL).grid(row=i, columnspan=5, sticky="ew")
-
-   j = 0
-
-   lab = Label(row, width=set_width, text="26. Clubhead impact velocity (m/sec): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.config(bg="cyan", fg="grey")
-   ent.insert(0,"N/A")
-   ent.grid(row=j, column=4)
-   entries['VC'] = ent
-   j = j+1
-
-   lab = Label(row, width=set_width, text="27. Systematic error of clubhead impact velocity (m/sec): ", \
-               font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.config(bg="cyan", fg="grey")
-   ent.insert(0,"N/A")
-   ent.grid(row=j, column=4)
-   entries['error_VC'] = ent
-   j = j+1
-
-   lab = Label(row, width=set_width, text="28. Clubhead impact angle (degree): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.config(bg="cyan", fg="grey")
-   ent.insert(0,"N/A")
-   ent.grid(row=j, column=4)
-   entries['VC_angle'] = ent
-   j = j+1
-
-   lab = Label(row, width=set_width, text="29. Systematic error of clubhead impact angle (degree): ", \
-               font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.config(bg="cyan", fg="grey")
-   ent.insert(0,"N/A")
-   ent.grid(row=j, column=4)
-   entries['error_VC_angle'] = ent
-   j = j+1
-
-   #####
    ents2 = entries
 
-   b2 = Button(row, text='Click to simulate / plot golf swing', relief=GROOVE, borderwidth=border_width, command=(lambda e2=ents2: pl.Plot(e2)), font=("bold", title_size), bg="cyan")
-   b2.grid(row=j, column=3, columnspan=2, sticky="ew")
-   j = j+1
-   #####
+   Button(sec_res, text='Simulate / Plot Golf Swing',
+          relief=GROOVE, borderwidth=border_width,
+          command=(lambda e2=ents2: pl.Plot(e2)),
+          font=("Helvetica", 10, "bold"), bg="#87CEEB", activebackground="#A8DCED"
+          ).grid(row=4, column=0, columnspan=2, sticky='ew', padx=pad_x, pady=(8, pad_y))
 
-   ttk.Separator(row, orient=HORIZONTAL).grid(row=j, column=3, columnspan=2, sticky="ew")
-   j = j+1
+   # --- Section VI: Golf Ball Parameters ---
+   sec6 = ttk.LabelFrame(right_panel, text="  (VI) Golf Ball Parameters  ", style='Section.TLabelframe')
+   sec6.grid(row=1, column=0, sticky='ew', pady=section_pad)
 
-   #
-   # 6. Set golf ball parameters
-   #
-   lab = Label(row, width=set_width, text="(VI) Set golf ball parameters", background="lightgreen", font=("bold", title_size)).grid(row=j, column=3, columnspan=2)
-   j = j+1
+   add_label_entry(sec6, 0, "30. Mass (kg):", "0.0458", 'ball_mass')
+   add_label_entry(sec6, 1, "31. Diameter (m):", "0.0428", 'ball_diameter')
+   add_label_entry(sec6, 2, "32. COR:", "0.775", 'COR')
+   add_label_entry(sec6, 3, "33. Drag coefficient:", "0.285", 'C_D')
+   add_label_entry(sec6, 4, "34. Lift coefficient:", "0.1", 'C_L')
 
-   lab = Label(row, width=set_width, text="30. Mass (kg): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.insert(0,"0.0458")
-   ent.grid(row=j, column=4)
-   entries['ball_mass'] = ent
-   j = j+1
+   # --- Section VII: Environmental Conditions ---
+   sec7 = ttk.LabelFrame(right_panel, text="  (VII) Environmental Conditions  ", style='Section.TLabelframe')
+   sec7.grid(row=2, column=0, sticky='ew', pady=section_pad)
 
-   lab = Label(row, width=set_width, text="31. Diameter (m): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.insert(0,"0.0428")
-   ent.grid(row=j, column=4)
-   entries['ball_diameter'] = ent
-   j = j+1
+   add_label_entry(sec7, 0, "*35. Air density (kg/m\u00b3):", "1.2", 'rho_air')
+   add_label_entry(sec7, 1, "36. Wind speed (m/s):", "0", 'v_wind')
+   add_label_entry(sec7, 2, "37. Wind elevation angle (deg):", "0", 'wind_theta')
+   add_label_entry(sec7, 3, "38. Wind direction angle (deg):", "0", 'wind_phi')
 
-   lab = Label(row, width=set_width, text="32. COR: ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.insert(0,"0.775")
-   ent.grid(row=j, column=4)
-   entries['COR'] = ent
-   j = j+1
+   # --- Section VIII: Launch Conditions ---
+   sec8 = ttk.LabelFrame(right_panel, text="  (VIII) Launch Conditions  ", style='Section.TLabelframe')
+   sec8.grid(row=3, column=0, sticky='ew', pady=section_pad)
 
-   lab = Label(row, width=set_width, text="33. Drag coefficient: ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.insert(0,"0.285")
-   ent.grid(row=j, column=4)
-   entries['C_D'] = ent
-   j = j+1
+   add_label_entry(sec8, 0, "39. Loft angle of clubhead (deg):", "15", 'clubhead_loft')
 
-   lab = Label(row, width=set_width, text="34. Lift coefficient: ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.insert(0,"0.1")
-   ent.grid(row=j, column=4)
-   entries['C_L'] = ent
-   j = j+1
-
-   ttk.Separator(row, orient=HORIZONTAL).grid(row=j, column=3, columnspan=2, sticky="ew")
-   j = j+1
-
-   #
-   # 7. Set environmental conditions
-   #
-   lab = Label(row, width=set_width, text="(VII) Set environmental conditions", background="lightgreen", font=("bold", title_size)).grid(row=j, column=3, columnspan=2)
-   j = j+1
-
-   lab = Label(row, width=set_width, text="*35. Air density (kg/m^3): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.insert(0,"1.2")
-   ent.grid(row=j, column=4)
-   entries['rho_air'] = ent
-   j = j+1
-
-   lab = Label(row, width=set_width, text="36. Wind speed (absolute value) (m/sec): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.insert(0,"0")
-   ent.grid(row=j, column=4)
-   entries['v_wind'] = ent
-   j = j+1
- 
-   lab = Label(row, width=set_width, text="37. Wind elevation angle: ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.insert(0,"0")
-   ent.grid(row=j, column=4)
-   entries['wind_theta'] = ent
-   j = j+1
- 
-   lab = Label(row, width=set_width, text="38. Wind direction angle: ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.insert(0,"0")
-   ent.grid(row=j, column=4)
-   entries['wind_phi'] = ent
-   j = j+1
-
-   ttk.Separator(row, orient=HORIZONTAL).grid(row=j, column=3, columnspan=2, sticky="ew")
-   j = j+1
-
-   #
-   # 8. Set initial conditions of golf ball
-   #
-   lab = Label(row, width=set_width, text="(VIII) Set launch conditions of golf ball", background="lightgreen", font=("bold", title_size)).grid(row=j, column=3, columnspan=2)
-   j = j+1
-
-   lab = Label(row, width=set_width, text="39. Loft angle of clubhead (degree): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.insert(0,"15")
-   ent.grid(row=j, column=4)
-   entries['clubhead_loft'] = ent
-   j = j+1
-
-   lab = Label(row, width=set_width, text="40. Launch speed (absolute value) (m/sec): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.config(fg = "grey", bg = "yellow")
-   ent.insert(0,"N/A")
-   ent.grid(row=j, column=4)
+   ttk.Label(sec8, text="40. Launch speed (m/s):", font=label_font, anchor='w').grid(
+       row=1, column=0, sticky='w', padx=pad_x, pady=pad_y)
+   ent = ttk.Entry(sec8, width=entry_width)
+   ent.insert(0, "N/A")
+   ent.state(['readonly'])
+   ent.grid(row=1, column=1, sticky='e', padx=pad_x, pady=pad_y)
    entries['ball_U'] = ent
-   j = j+1
 
-   lab = Label(row, width=set_width, text="41. Launch elevation angle (degree): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.config(fg = "grey", bg = "yellow")
-   ent.insert(0,"N/A")
-   ent.grid(row=j, column=4)
+   ttk.Label(sec8, text="41. Launch elevation angle (deg):", font=label_font, anchor='w').grid(
+       row=2, column=0, sticky='w', padx=pad_x, pady=pad_y)
+   ent = ttk.Entry(sec8, width=entry_width)
+   ent.insert(0, "N/A")
+   ent.state(['readonly'])
+   ent.grid(row=2, column=1, sticky='e', padx=pad_x, pady=pad_y)
    entries['ball_theta'] = ent
-   j = j+1
 
-   lab = Label(row, width=set_width, text="*42. Launch direction angle (degree): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.insert(0,"0")
-   ent.grid(row=j, column=4)
-   entries['ball_phi'] = ent
-   j = j+1
+   add_label_entry(sec8, 3, "*42. Launch direction angle (deg):", "0", 'ball_phi')
+   add_label_entry(sec8, 4, "43. Spin elevation angle (deg):", "0", 'ball_w_theta')
+   add_label_entry(sec8, 5, "44. Spin direction angle (deg):", "-90", 'ball_w_phi')
 
-   lab = Label(row, width=set_width, text="43. Spin elevation angle (degree): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.insert(0,"0")
-   ent.grid(row=j, column=4)
-   entries['ball_w_theta'] = ent
-   j = j+1
-
-   lab = Label(row, width=set_width, text="44. Spin direction angle (degree): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.insert(0,"-90")
-   ent.grid(row=j, column=4)
-   entries['ball_w_phi'] = ent
-   j = j+1
-
-   #####
    ents4 = entries
 
-   b4 = Button(row, text='Click to calculate golf ball launch speed and elevation angle \n(based on clubhead impact velocity and loft angle)', \
-               relief=GROOVE, borderwidth=border_width,command=(lambda e4=ents4: pl.get_ball_velocity(e4)), font=("bold", title_size), bg="yellow")
-   b4.grid(row=j, rowspan=3, column=3, columnspan=2, sticky="ew")
-   j = j+3
-   #####
+   Button(sec8, text='Calculate launch speed and\nelevation angle from impact',
+          relief=GROOVE, borderwidth=border_width,
+          command=(lambda e4=ents4: pl.get_ball_velocity(e4)),
+          font=("Helvetica", 9, "bold"), bg="#FFD700", activebackground="#FFE44D"
+          ).grid(row=6, column=0, columnspan=2, sticky='ew', padx=pad_x, pady=(8, pad_y))
 
-   ttk.Separator(row, orient=HORIZONTAL).grid(row=j, column=3, columnspan=2, sticky="ew")
-   j = j+1
+   # --- Section IX: Ball Trajectory ---
+   sec9 = ttk.LabelFrame(right_panel, text="  (IX) Ball Trajectory  ", style='Section.TLabelframe')
+   sec9.grid(row=4, column=0, sticky='ew', pady=section_pad)
 
-   #
-   # 9. Simulate the golf ball trajectory
-   #
-   lab = Label(row, width=set_width, text="(IX) Simulate the golf ball trajectory", background="lightgreen", font=("bold", title_size)).grid(row=j, column=3, columnspan=2)
-   j = j+1
+   add_label_entry(sec9, 0, "*45. Target altitude (m):", "0", 'Altitude')
 
-   lab = Label(row, width=set_width, text="*45. Altitude of target (m): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.insert(0,"0")
-   ent.grid(row=j, column=4)
-   entries['Altitude'] = ent
-   j = j+1
+   ttk.Label(sec9, text="46. Results to plot:", font=label_font, anchor='w').grid(
+       row=1, column=0, columnspan=2, sticky='w', padx=pad_x, pady=pad_y)
 
-   lab = Label(row, width=set_width, text="46. Choose the results to plot: ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   j = j+1
+   check_frame2 = ttk.Frame(sec9)
+   check_frame2.grid(row=2, column=0, columnspan=2, sticky='w', padx=pad_x)
 
-   var = BooleanVar()
-   c = Checkbutton(row, text="X-Z", font=("Times", font_size), variable=var)
-   c.grid(row=j, column=3, sticky="w")
-   entries['Figure1'] = var
+   fig2_checks = [
+       ("X-Z", 'Figure1'),
+       ("X-Y", 'Figure2'),
+       ("Y-Z", 'Figure3'),
+       ("X-Y-Z (3D)", 'Figure4'),
+   ]
+   for idx, (label, key) in enumerate(fig2_checks):
+       var = BooleanVar()
+       c = ttk.Checkbutton(check_frame2, text=label, variable=var)
+       c.grid(row=idx // 2, column=idx % 2, sticky='w', padx=8, pady=2)
+       entries[key] = var
 
-   var = BooleanVar()
-   c = Checkbutton(row, text="X-Y", font=("Times", font_size), variable=var)
-   c.grid(row=j, column=4, sticky="w")
-   entries['Figure2'] = var
-   j = j+1
+   # Trajectory results
+   traj_results = [
+       ("47. Drop location X (m):", 'X_final'),
+       ("48. Drop location Y (m):", 'Y_final'),
+       ("49. Flight distance X-Y (m):", 'Distance'),
+   ]
+   for idx, (text, key) in enumerate(traj_results):
+       ttk.Label(sec9, text=text, font=label_font, anchor='w').grid(
+           row=3 + idx, column=0, sticky='w', padx=pad_x, pady=pad_y)
+       ent = ttk.Entry(sec9, width=entry_width)
+       ent.insert(0, "N/A")
+       ent.state(['readonly'])
+       ent.grid(row=3 + idx, column=1, sticky='e', padx=pad_x, pady=pad_y)
+       entries[key] = ent
 
-   var = BooleanVar()
-   c = Checkbutton(row, text="Y-Z", font=("Times", font_size), variable=var)
-   c.grid(row=j, column=3, sticky="w")
-   entries['Figure3'] = var
-
-   var = BooleanVar()
-   c = Checkbutton(row, text="X-Y-Z (3-D plot)", font=("Times", font_size), variable=var)
-   c.grid(row=j, column=4, sticky="w")
-   entries['Figure4'] = var
-   j = j+1
-
-   lab = Label(row, width=set_width, text="47. Drop location in X (m): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.config(bg="cyan", fg="grey")
-   ent.insert(0,"N/A")
-   ent.grid(row=j, column=4)
-   entries['X_final'] = ent
-   j = j+1
-
-   lab = Label(row, width=set_width, text="48. Drop location in Y (m): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.config(bg="cyan", fg="grey")
-   ent.insert(0,"N/A")
-   ent.grid(row=j, column=4)
-   entries['Y_final'] = ent
-   j = j+1
-
-   lab = Label(row, width=set_width, text="49. Flight distance in X-Y plane (m): ", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   ent = Entry(row)
-   ent.config(bg="cyan", fg="grey")
-   ent.insert(0,"N/A")
-   ent.grid(row=j, column=4)
-   entries['Distance'] = ent
-   j = j+1
-
-   #####
    ents5 = entries
 
-   b5 = Button(row, text='Click to simulate / plot golf ball trajectory', relief=GROOVE, borderwidth=border_width, \
-               command=(lambda e5=ents5: pl2.Plot(e5)), font=("bold", title_size), bg="cyan")
-   b5.grid(row=j, rowspan=1, column=3, columnspan=2, sticky="ew")
-   j = j+1
+   Button(sec9, text='Simulate / Plot Ball Trajectory',
+          relief=GROOVE, borderwidth=border_width,
+          command=(lambda e5=ents5: pl2.Plot(e5)),
+          font=("Helvetica", 10, "bold"), bg="#87CEEB", activebackground="#A8DCED"
+          ).grid(row=6, column=0, columnspan=2, sticky='ew', padx=pad_x, pady=(8, pad_y))
 
-   ttk.Separator(row, orient=HORIZONTAL).grid(row=j, column=3, columnspan=2, sticky="ew")
-   j = j+1
+   # --- Footer ---
+   note_label = ttk.Label(right_panel, text="(*) Suggested default value.",
+                           foreground="red", font=("Helvetica", 9))
+   note_label.grid(row=5, column=0, sticky='w', padx=pad_x, pady=(8, 0))
 
-   lab = Label(row, width=set_width, \
-               text="(*) The suggested default value.", \
-               fg="red", font=("Times", font_size), anchor='w').grid(row=j, column=3)
-   #j = j+1
-   ###############
-
-   row.pack()
+   # Set minimum window size and initial geometry
+   root.update_idletasks()
+   root.minsize(800, 600)
+   root.geometry("1050x750")
 
    root.mainloop()
-

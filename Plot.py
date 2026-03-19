@@ -11,6 +11,19 @@ import BasicFunc as base
 
 PI = 3.141592653589793
 
+def _set_entry(entry, value):
+    """Update a ttk Entry field (handles readonly state)."""
+    try:
+        entry.state(['!readonly'])
+    except AttributeError:
+        pass
+    entry.delete(0, END)
+    entry.insert(0, value)
+    try:
+        entry.state(['readonly'])
+    except AttributeError:
+        pass
+
 def get_ball_velocity(entries):
     #
     # Calculate ball velocity
@@ -21,9 +34,7 @@ def get_ball_velocity(entries):
     VC           = float(entries['VC'].get())
     ans_ball_velocity = base.Ball_velocity(VC, tmp_M_C_head, ball_mass, COR)
     tmp_ans_ball_velocity = ("%5.2f" % ans_ball_velocity).strip()
-    entries['ball_U'].delete(0, END)
-    entries['ball_U'].config(fg = "red", bg = "yellow")
-    entries['ball_U'].insert(0, tmp_ans_ball_velocity)
+    _set_entry(entries['ball_U'], tmp_ans_ball_velocity)
     #
     # Calculate the elevation angle of ball
     #
@@ -33,9 +44,7 @@ def get_ball_velocity(entries):
     tmp_clubhead_loft = float(entries['clubhead_loft'].get()) # (degree) 
     tmp_ans_elevation = tmp_theta_final + tmp_beta_final + tmp_clubhead_loft + tmp_VC_angle
     tmp2_ans_elevation= ("%5.2f" % tmp_ans_elevation).strip()
-    entries['ball_theta'].delete(0, END)
-    entries['ball_theta'].config(fg = "red", bg = "yellow")
-    entries['ball_theta'].insert(0, tmp2_ans_elevation)
+    _set_entry(entries['ball_theta'], tmp2_ans_elevation)
 
 def Optimize_Q_beta(entries):
     #
@@ -223,9 +232,7 @@ def Optimize_Q_beta(entries):
     # Print results
     #
     tmp2_set_Q_beta = ("%5.2f" % tmp2_set_Q_beta).strip()
-    entries['Q_beta'].delete(0, END)
-    entries['Q_beta'].config(fg = "red", bg = "yellow")
-    entries['Q_beta'].insert(0, tmp2_set_Q_beta)
+    _set_entry(entries['Q_beta'], tmp2_set_Q_beta)
     #
     # plot result
     #
@@ -403,9 +410,7 @@ def Optimize_Q_beta_2(entries):
     # Print results
     #
     tmp2_set_Q_beta = ("%5.2f" % tmp2_set_Q_beta).strip()
-    entries['Q_beta'].delete(0, END)
-    entries['Q_beta'].config(fg = "red", bg = "yellow")
-    entries['Q_beta'].insert(0, tmp2_set_Q_beta)
+    _set_entry(entries['Q_beta'], tmp2_set_Q_beta)
     #
     # plot result
     #
@@ -573,9 +578,7 @@ def Plot(entries):
     print_VC = ("%5.2f" % show_VC[step-1]).strip()
     print1_VC = ("%5.2f" % show1_VC[step1-1]).strip()
     print2_VC = ("%5.2f" % show2_VC[step2-1]).strip()
-    entries['VC'].delete(0, END)
-    entries['VC'].config(fg = "red", bg = "cyan")
-    entries['VC'].insert(0, print_VC)
+    _set_entry(entries['VC'], print_VC)
     #
     print_VC_angle = show_VC_angle[step-1]*180.0/PI
     print1_VC_angle = show1_VC_angle[step1-1]*180.0/PI
@@ -583,24 +586,18 @@ def Plot(entries):
     print_VC_angle = ("%5.2f" % print_VC_angle).strip()
     print1_VC_angle = ("%5.2f" % print1_VC_angle).strip()
     print2_VC_angle = ("%5.2f" % print2_VC_angle).strip()
-    entries['VC_angle'].delete(0, END)
-    entries['VC_angle'].config(fg = "red", bg = "cyan")
-    entries['VC_angle'].insert(0, print_VC_angle)
+    _set_entry(entries['VC_angle'], print_VC_angle)
     #
     #
     error1_VC = float(print1_VC) - float(print_VC)
     error2_VC = float(print2_VC) - float(print_VC)
     print_error_VC = '['+("%5.2f" % error1_VC).strip()+', '+("%5.2f" % error2_VC).strip()+']'
-    entries['error_VC'].delete(0, END)
-    entries['error_VC'].config(fg = "red", bg = "cyan")
-    entries['error_VC'].insert(0, print_error_VC)
+    _set_entry(entries['error_VC'], print_error_VC)
     #
     error1_VC_angle = float(print1_VC_angle) - float(print_VC_angle)
     error2_VC_angle = float(print2_VC_angle) - float(print_VC_angle)
     print_error_VC_angle = '['+("%5.2f" % error1_VC_angle).strip()+', '+("%5.2f" % error2_VC_angle).strip()+']'
-    entries['error_VC_angle'].delete(0, END)
-    entries['error_VC_angle'].config(fg = "red", bg = "cyan")
-    entries['error_VC_angle'].insert(0, print_error_VC_angle)
+    _set_entry(entries['error_VC_angle'], print_error_VC_angle)
 
     #
     # plot results

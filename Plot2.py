@@ -11,6 +11,19 @@ import matplotlib.pyplot as plt
 import AppFunc2 as func
 import BasicFunc as base
 
+def _set_entry(entry, value):
+    """Update a ttk Entry field (handles readonly state)."""
+    try:
+        entry.state(['!readonly'])
+    except AttributeError:
+        pass
+    entry.delete(0, END)
+    entry.insert(0, value)
+    try:
+        entry.state(['readonly'])
+    except AttributeError:
+        pass
+
 def initial(entries):
     #
     # Declare global values
@@ -65,23 +78,17 @@ def Plot(entries):
     # show results
     #
     print_x = ("%5.3f" % show_x[step-1]).strip()
-    entries['X_final'].delete(0, END)
-    entries['X_final'].config(fg = "red", bg = "cyan")
-    entries['X_final'].insert(0, print_x)
+    _set_entry(entries['X_final'], print_x)
     #
     print_y = ("%5.3f" % show_y[step-1]).strip()
-    entries['Y_final'].delete(0, END)
-    entries['Y_final'].config(fg = "red", bg = "cyan")
-    entries['Y_final'].insert(0, print_y)
+    _set_entry(entries['Y_final'], print_y)
     #
     tmp_distance = sqrt(show_x[step-1]**2 + show_y[step-1]**2)
     if (show_x[step-1] >= 0.0):
         print_distance = ("%5.3f" % tmp_distance).strip()
-    else: 
+    else:
         print_distance = ("-%5.3f" % tmp_distance).strip()
-    entries['Distance'].delete(0, END)
-    entries['Distance'].config(fg = "red", bg = "cyan")
-    entries['Distance'].insert(0, print_distance)
+    _set_entry(entries['Distance'], print_distance)
     #
     # plot results
     #
