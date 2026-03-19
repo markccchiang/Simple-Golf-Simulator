@@ -1,11 +1,6 @@
 #!/usr/bin/env python
-import sys
-if sys.version_info[0] < 3:
-    from Tkinter import *
-else:
-    from tkinter import *
+from tkinter import *
 
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import matplotlib.pyplot as plt

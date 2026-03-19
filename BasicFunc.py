@@ -1,6 +1,5 @@
 from math import *
-#import numpy as np
-import cmath 
+import cmath
 
 #
 # Fixed parameters

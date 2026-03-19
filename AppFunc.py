@@ -1,7 +1,6 @@
 from math import *
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import BasicFunc as func
 
 def Tracking(Weight, R_S, R_A, \

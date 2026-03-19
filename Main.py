@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 import sys
-if sys.version_info[0] < 3:
-    from Tkinter import *
-    import ttk
-else:
-    from tkinter import *
-    from tkinter import ttk
+from tkinter import *
+from tkinter import ttk
 
 import matplotlib.pyplot as plt
 import Plot as pl
