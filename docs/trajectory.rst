@@ -27,6 +27,8 @@ where :math:`R` is the radius of a ball. The stream velocity is:
 :math:`C_D` and :math:`C_L` are the coefficients of drag and lift, respectively, and they are usually changed
 with the ratio of the circumferential (rotational) speed :math:`|\vec{V}|` of a ball to the stream speed :math:`|\vec{U}|`,
 where :math:`\vec{V} = \vec{w} \times \vec{R}`.
+Studies of the effects of :math:`|\vec{V}|/|\vec{U}|` and Reynolds number on :math:`C_D` and :math:`C_L`
+can be found in [Aoki2010]_, [Kharlamov2007]_, and [Penner2003]_.
 
 The Reynolds number is defined as:
 

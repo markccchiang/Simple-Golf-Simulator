@@ -159,6 +159,7 @@ The angle :math:`\delta` and effective length of arm :math:`R` are:
 
    \delta = \cos^{-1}\frac{R_S}{R_A}, \qquad R = \sqrt{R_A^2 - R_S^2}
 
+This integration is solved by Maxima [Maxima]_.
 The :math:`S_A`, :math:`J` and :math:`R` for Type I backswing are **constants** during the swing.
 
 Type II: Full-Length Backswing
@@ -166,6 +167,7 @@ Type II: Full-Length Backswing
 
 For Type II, the right arm is bent at the start of swing and gradually straightens before impact.
 The :math:`S_A`, :math:`J` and :math:`R` are **varied with time** during the swing, depending on the bending angle :math:`\omega`.
+The percentages of weights for male, female and average are from [BodySegment]_.
 
 .. list-table:: Percentages of weights of upper arm, forearm and hand
    :header-rows: 1
@@ -365,7 +367,7 @@ In Type II swing, the effective arm length :math:`R`, and the moments :math:`S_A
 Case 6: The Effect of Clubhead Mass
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The launched velocity of a golf ball is:
+The launched velocity of a golf ball [Wesson2009]_ is:
 
 .. math::
 
