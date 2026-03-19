@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
    root = Tk()
 
-   root.title("The Simple Golf Simulator (Copyright @ 2016 C.-C. Chiang)")
+   root.title("The Simple Golf Simulator (Copyright @ 2026 C.-C. Chiang)")
 
    entries = {}
 
