@@ -5,8 +5,24 @@ A physics-based golf swing and ball trajectory simulator with an interactive GUI
 ## Requirements
 
 - **Python 3.12+** is recommended for best compatibility
-- Dependencies: `matplotlib`, `numpy`
-- Built-in: `tkinter`, `math`, `cmath`
+- Third-party packages: `matplotlib`, `numpy`
+- Standard library: `tkinter`, `math`, `cmath`, `sys`
+
+## Installation
+
+```bash
+pip install matplotlib numpy
+```
+
+On some Linux systems, `tkinter` may need to be installed separately:
+
+```bash
+# Debian/Ubuntu
+sudo apt-get install python3-tk
+
+# Fedora
+sudo dnf install python3-tkinter
+```
 
 ## Getting Started
 
