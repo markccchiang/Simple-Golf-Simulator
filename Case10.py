@@ -61,7 +61,7 @@ for k in range(0, 181, 1):
   ax.plot(show_x[step], show_y[step], 'g.', markeredgecolor = 'none', markersize=10)
   if (k%5 == 0):
     ax.text(show_x[step], show_y[step], r'$\theta_w = %s^\circ$'%(set_ball_w_theta), fontweight='bold', fontsize=10)
-  print set_ball_w_theta
+  print(set_ball_w_theta)
 #
 for k in range(359, 180, -1):
   set_ball_w_theta = 1.0*k
@@ -71,7 +71,7 @@ for k in range(359, 180, -1):
   ax.plot(show_x[step], show_y[step], 'g.', markeredgecolor = 'none', markersize=10)
   if (k%5 == 0):
     ax.text(show_x[step], show_y[step], r'$\theta_w = %s^\circ$'%(set_ball_w_theta), fontweight='bold', fontsize=10)
-  print set_ball_w_theta
+  print(set_ball_w_theta)
 #
 ax.annotate('',xytext=(10, 4),xy=(30, 4),arrowprops=dict(facecolor='black', shrink=0.05)) # i=1
 ax.text(5, 7, r'Wind speed: 5 (m/sec)', fontsize=15)
@@ -95,7 +95,7 @@ for k in range(0, 181, 1):
   ax.plot(show_x[step], show_y[step], 'g.', markeredgecolor = 'none', markersize=10)
   if (k%5 == 0):
     ax.text(show_x[step], show_y[step], r'$\theta_w = %s^\circ$'%(set_ball_w_theta), fontweight='bold', fontsize=10)
-  print set_ball_w_theta
+  print(set_ball_w_theta)
 #
 for k in range(359, 180, -1):
   set_ball_w_theta = 1.0*k
@@ -105,7 +105,7 @@ for k in range(359, 180, -1):
   ax.plot(show_x[step], show_y[step], 'g.', markeredgecolor = 'none', markersize=10)
   if (k%5 == 0):
     ax.text(show_x[step], show_y[step], r'$\theta_w = %s^\circ$'%(set_ball_w_theta), fontweight='bold', fontsize=10)
-  print set_ball_w_theta
+  print(set_ball_w_theta)
 #
 ax.annotate('',xytext=(20, 2.5),xy=(20, 5.5),arrowprops=dict(facecolor='black', shrink=0.05)) # j=1
 ax.text(5, 7, r'Wind speed: 5 (m/sec)', fontsize=15)
@@ -129,7 +129,7 @@ for k in range(0, 181, 1):
   ax.plot(show_x[step], show_y[step], 'g.', markeredgecolor = 'none', markersize=10)
   if (k%5 == 0):
     ax.text(show_x[step], show_y[step], r'$\theta_w = %s^\circ$'%(set_ball_w_theta), fontweight='bold', fontsize=10)
-  print set_ball_w_theta
+  print(set_ball_w_theta)
 #
 for k in range(359, 180, -1):
   set_ball_w_theta = 1.0*k
@@ -139,7 +139,7 @@ for k in range(359, 180, -1):
   ax.plot(show_x[step], show_y[step], 'g.', markeredgecolor = 'none', markersize=10)
   if (k%5 == 0):
     ax.text(show_x[step], show_y[step], r'$\theta_w = %s^\circ$'%(set_ball_w_theta), fontweight='bold', fontsize=10)
-  print set_ball_w_theta
+  print(set_ball_w_theta)
 #
 ax.annotate('',xytext=(30, 4),xy=(10, 4),arrowprops=dict(facecolor='black', shrink=0.05)) # i=-1
 ax.text(5, 7, r'Wind speed: 5 (m/sec)', fontsize=15)
@@ -163,7 +163,7 @@ for k in range(0, 181, 1):
   ax.plot(show_x[step], show_y[step], 'g.', markeredgecolor = 'none', markersize=10)
   if (k%5 == 0):
     ax.text(show_x[step], show_y[step], r'$\theta_w = %s^\circ$'%(set_ball_w_theta), fontweight='bold', fontsize=10)
-  print set_ball_w_theta
+  print(set_ball_w_theta)
 #
 for k in range(359, 180, -1):
   set_ball_w_theta = 1.0*k
@@ -173,7 +173,7 @@ for k in range(359, 180, -1):
   ax.plot(show_x[step], show_y[step], 'g.', markeredgecolor = 'none', markersize=10)
   if (k%5 == 0):
     ax.text(show_x[step], show_y[step], r'$\theta_w = %s^\circ$'%(set_ball_w_theta), fontweight='bold', fontsize=10)
-  print set_ball_w_theta
+  print(set_ball_w_theta)
 #
 ax.annotate('',xytext=(20, 5.5),xy=(20, 2.5),arrowprops=dict(facecolor='black', shrink=0.05)) # j=1
 ax.text(5, 7, r'Wind speed: 5 (m/sec)', fontsize=15)

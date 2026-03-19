@@ -5,7 +5,7 @@ if sys.version_info[0] < 3:
     import ttk
 else:
     from tkinter import *
-    import ttk
+    from tkinter import ttk
 
 import matplotlib.pyplot as plt
 import Plot as pl

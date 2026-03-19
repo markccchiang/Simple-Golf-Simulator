@@ -44,7 +44,7 @@ ax.set_ylabel('z (m)', fontweight='bold', fontsize=25, linespacing=1.0)
 ax.tick_params(labelsize=15) 
 for i in range(1, 7, 1):
     set_C_D = i*0.1
-    print set_C_D
+    print(set_C_D)
     show_x, show_y, show_z = \
     func.TRACK(ball_mass, ball_diameter, rho_air, set_C_D, C_L, \
                ball_v, ball_theta, ball_phi, \
@@ -67,7 +67,7 @@ ax.set_ylabel('z (m)', fontweight='bold', fontsize=25, linespacing=1.0)
 ax.tick_params(labelsize=15) 
 for i in range(0, 4, 1):
     set_C_L = i*0.1
-    print set_C_L
+    print(set_C_L)
     show_x, show_y, show_z = \
     func.TRACK(ball_mass, ball_diameter, rho_air, C_D, set_C_L, \
                ball_v, ball_theta, ball_phi, \
@@ -89,7 +89,7 @@ for i in range(0, set_grid_sections*2+1, 1):
   for j in range(0, set_grid_sections*2+1, 1):
      set_C_D = 0.1 + i*0.5/(set_grid_sections*2)
      set_C_L = 0.0 + j*0.3/(set_grid_sections*2)
-     print set_C_D, set_C_L
+     print(set_C_D, set_C_L)
      show_x, show_y, show_z = \
      func.TRACK(ball_mass, ball_diameter, rho_air, set_C_D, set_C_L, \
                 ball_v, ball_theta, ball_phi, \

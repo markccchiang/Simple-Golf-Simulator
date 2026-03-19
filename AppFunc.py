@@ -207,11 +207,11 @@ def Tracking(Weight, R_S, R_A, \
         print_beta     = show_beta[step]*180/PI
         print_VC_angle = show_VC_angle[step]*180.0/PI
         #------------------------------------------------------------------
-    print '    Swing time:        ', ("%5.4f" % show_t[step]).strip(), '(sec)'
-    print '    Clubhead velocity: ', ("%5.2f" % show_VC[step]).strip(), '(m/sec)'
-    print '    Clubhead angle:    ', ("%5.2f" % print_VC_angle).strip(), '(degree)' 
-    print '    Wrist-cock angle:  ', ("%5.2f" % print_beta).strip(), '(degree)'  
-    print '--------------------------------------------'
+    print('    Swing time:        ', ("%5.4f" % show_t[step]).strip(), '(sec)')
+    print('    Clubhead velocity: ', ("%5.2f" % show_VC[step]).strip(), '(m/sec)')
+    print('    Clubhead angle:    ', ("%5.2f" % print_VC_angle).strip(), '(degree)')
+    print('    Wrist-cock angle:  ', ("%5.2f" % print_beta).strip(), '(degree)')
+    print('--------------------------------------------')
     #
     # correct the length of array
     #

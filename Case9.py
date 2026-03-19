@@ -60,7 +60,7 @@ for k in range(0, 181, 1):
   ax.plot(show_x[step], show_y[step], 'g.', markeredgecolor = 'none', markersize=10)
   if (k%5 == 0):
     ax.text(show_x[step], show_y[step], r'$\theta_w = %s^\circ$'%(set_ball_w_theta), fontweight='bold', fontsize=10)
-  print set_ball_w_theta
+  print(set_ball_w_theta)
 #
 for k in range(359, 180, -1):
   set_ball_w_theta = 1.0*k
@@ -69,7 +69,7 @@ for k in range(359, 180, -1):
   ax.plot(show_x[step], show_y[step], 'g.', markeredgecolor = 'none', markersize=10)
   if (k%5 == 0):
     ax.text(show_x[step], show_y[step], r'$\theta_w = %s^\circ$'%(set_ball_w_theta), fontweight='bold', fontsize=10)
-  print set_ball_w_theta
+  print(set_ball_w_theta)
 #
 plt.savefig('Case9-Fig1.eps', format='eps', dpi=1000, bbox_inches='tight')
 #----------------------------------------------------------------------------------------

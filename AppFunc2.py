@@ -79,11 +79,11 @@ def TRACK(m, D, rho_air, C_D, C_L, \
     print_show_t = ("%5.3f" % show_t[step]).strip()
     tmp_distance = sqrt(show_x[step]**2 + show_y[step]**2)
     print_distance = ("%5.3f" % tmp_distance).strip()
-    print '    Fly time:           ', print_show_t, '(sec)'
-    print '    Fly distance:       ', print_distance, '(m)'
-    print '    Drop location in X: ', print_show_x, '(m)'
-    print '    Drop location in Y: ', print_show_y, '(m)'
-    print '--------------------------------------------'
+    print('    Fly time:           ', print_show_t, '(sec)')
+    print('    Fly distance:       ', print_distance, '(m)')
+    print('    Drop location in X: ', print_show_x, '(m)')
+    print('    Drop location in Y: ', print_show_y, '(m)')
+    print('--------------------------------------------')
     return show_x[:step+1], show_y[:step+1], show_z[:step+1]
     ##########################################################################
 

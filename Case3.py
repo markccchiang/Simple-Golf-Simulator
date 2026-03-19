@@ -69,7 +69,7 @@ def Optimize_Q_beta_2(Weight, R_S, R_A, \
     #
     while (tmp_beta > beta_final and set_Q_beta >= Q_beta_min):
         set_Q_beta = Q_beta_max - i*dQ_beta
-        print '>>>>> Try wrist-cock torque:', set_Q_beta, '(N-m) <<<<<'
+        print('>>>>> Try wrist-cock torque:', set_Q_beta, '(N-m) <<<<<')
         #
         show_O_x, show_O_y, \
         show_arm_x, show_arm_y, \
@@ -118,7 +118,7 @@ def Optimize_Q_beta_2(Weight, R_S, R_A, \
             set_Q_beta = Q_beta_max1 - i*dQ_beta/100
         else:
             set_Q_beta = Q_beta_max1 - (i+1-100)*dQ_beta
-        print '>>>>> Try wrist-cock torque:', set_Q_beta, '(N-m) <<<<<'
+        print('>>>>> Try wrist-cock torque:', set_Q_beta, '(N-m) <<<<<')
         #
         show_O_x, show_O_y, \
         show_arm_x, show_arm_y, \
@@ -186,7 +186,7 @@ def Track(Weight, R_S, R_A, \
     #
     # Tarcking
     #
-    print '>>>>> For Wrist-cock torque:', Q_beta+0.01, '(N-m) <<<<<'
+    print('>>>>> For Wrist-cock torque:', Q_beta+0.01, '(N-m) <<<<<')
     show1_O_x, show1_O_y, \
     show1_arm_x, show1_arm_y, \
     show1_club_x, show1_club_y, \
@@ -213,7 +213,7 @@ def Track(Weight, R_S, R_A, \
                   theta_final, Type, Sex, Method, \
                   tau_Q_alpha, tau_Q_beta, Set_theta)
     #
-    print '>>>>> For Wrist-cock torque:', Q_beta, '(N-m) <<<<<'
+    print('>>>>> For Wrist-cock torque:', Q_beta, '(N-m) <<<<<')
     show_O_x, show_O_y, \
     show_arm_x, show_arm_y, \
     show_club_x, show_club_y, \
@@ -240,7 +240,7 @@ def Track(Weight, R_S, R_A, \
                   theta_final, Type, Sex, Method, \
                   tau_Q_alpha, tau_Q_beta, Set_theta)
     #
-    print '>>>>> For Wrist-cock torque:', Q_beta-0.01, '(N-m) <<<<<'
+    print('>>>>> For Wrist-cock torque:', Q_beta-0.01, '(N-m) <<<<<')
     show2_O_x, show2_O_y, \
     show2_arm_x, show2_arm_y, \
     show2_club_x, show2_club_y, \

@@ -47,7 +47,7 @@ def Distance(set_C_D, set_C_L):
       else:
         distance = -1.0*sqrt(show_x[step]**2 + show_y[step]**2)
       array_distance.append(distance)
-      print set_ball_theta, set_C_D, set_C_L
+      print(set_ball_theta, set_C_D, set_C_L)
     return array_distance
 
 show_ball_theta = []

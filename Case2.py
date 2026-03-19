@@ -68,7 +68,7 @@ def Optimize_Q_beta(Weight, R_S, R_A, \
     #
     while (tmp_beta > beta_final and set_Q_beta >= Q_beta_min):
         set_Q_beta = Q_beta_max - i*dQ_beta
-        print '>>>>> Try wrist-cock torque:', set_Q_beta, '(N-m) <<<<<'
+        print('>>>>> Try wrist-cock torque:', set_Q_beta, '(N-m) <<<<<')
         #
         show_O_x, show_O_y, \
         show_arm_x, show_arm_y, \
@@ -110,7 +110,7 @@ def Optimize_Q_beta(Weight, R_S, R_A, \
     Q_beta_max1 = set_Q_beta + dQ_beta 
     while (tmp_beta > beta_final and set_Q_beta >= Q_beta_min):
         set_Q_beta = Q_beta_max1 - i*dQ_beta/10
-        print '>>>>> Try wrist-cock torque:', set_Q_beta, '(N-m) <<<<<'
+        print('>>>>> Try wrist-cock torque:', set_Q_beta, '(N-m) <<<<<')
         #
         show_O_x, show_O_y, \
         show_arm_x, show_arm_y, \
@@ -156,7 +156,7 @@ def Optimize_Q_beta(Weight, R_S, R_A, \
         d_Beta = abs(tmp_beta-beta_final)
         #
         set_Q_beta = Q_beta_max2 - i*dQ_beta/100
-        print '>>>>> Try wrist-cock torque:', set_Q_beta, '(N-m) <<<<<'
+        print('>>>>> Try wrist-cock torque:', set_Q_beta, '(N-m) <<<<<')
         #
         show_O_x, show_O_y, \
         show_arm_x, show_arm_y, \
@@ -235,11 +235,11 @@ if __name__ == '__main__':
       array_Q_alpha.append(set_Q_alpha)
       array_Q_beta.append(-1*Q_beta)
       array_VC.append(VC)
-      print '********************************************'
-      print 'The arm torque:', set_Q_alpha, '(N-m)' 
-      print 'The optimized wrist-cock torque:', Q_beta, '(N-m)' 
-      print 'The clubhead velocity:', VC, '(m/sec)'
-      print '********************************************'
+      print('********************************************')
+      print('The arm torque:', set_Q_alpha, '(N-m)')
+      print('The optimized wrist-cock torque:', Q_beta, '(N-m)')
+      print('The clubhead velocity:', VC, '(m/sec)')
+      print('********************************************')
     #print array_Q_alpha, array_Q_beta, array_VC
 
     #

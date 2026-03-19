@@ -43,7 +43,7 @@ Set_theta  = theta # (degree)
 #
 # Tarcking Solution 1
 #
-print '>>>>> Tarcking Solution 1 <<<<<'
+print('>>>>> Tarcking Solution 1 <<<<<')
 show_O_x, show_O_y, \
 show_arm_x, show_arm_y, \
 show_club_x, show_club_y, \
@@ -73,7 +73,7 @@ func.Tracking(Weight, R_S, R_A, \
 #
 # Tarcking Solution 2
 #
-print '>>>>> Tarcking Solution 2 <<<<<'
+print('>>>>> Tarcking Solution 2 <<<<<')
 show_O_x, show_O_y, \
 show_arm_x, show_arm_y, \
 show_club_x, show_club_y, \
@@ -103,7 +103,7 @@ func.Tracking(Weight, R_S, R_A, \
 #
 # Tarcking Solution 3
 #
-print '>>>>> Tarcking Solution 3 <<<<<'
+print('>>>>> Tarcking Solution 3 <<<<<')
 show_O_x, show_O_y, \
 show_arm_x, show_arm_y, \
 show_club_x, show_club_y, \
