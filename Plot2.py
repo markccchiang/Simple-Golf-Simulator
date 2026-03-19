@@ -114,7 +114,7 @@ def Plot(entries):
     if (Figure4 == 'True'): 
       fig = plt.figure(12)
       fig.clf()
-      ax = fig.gca(projection='3d')
+      ax = fig.add_subplot(111, projection='3d')
       ax.set_zlim3d(min(show_z), max(show_z)+1.0)
       ax.set_ylim(min(show_y)-1.0, max(show_y)+1.0)
       ax.set_xlabel('\n' + 'X (m)', fontweight='bold', fontsize=22, linespacing=0.9)
