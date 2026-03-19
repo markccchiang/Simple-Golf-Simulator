@@ -60,6 +60,20 @@ Tracks, angles, angular velocities, angular accelerations, clubhead velocity, to
 **Ball trajectory plots:**
 X-Z (elevation), X-Y (horizontal), Y-Z (lateral), and 3D flight path.
 
+## Documentation
+
+The full technical report (two-rod swing model, aerodynamic equations, simulation cases, and user's guide) is available as Sphinx documentation under `docs/`.
+
+To build:
+
+```bash
+pip install sphinx sphinx-rtd-theme
+cd docs
+sphinx-build -b html . _build/html
+```
+
+Then open `docs/_build/html/index.html` in your browser.
+
 ## Project Structure
 
 | File | Description |
