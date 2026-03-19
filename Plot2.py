@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from tkinter import *
+from tkinter import messagebox
 
 import numpy as np
 from math import *
@@ -53,6 +54,15 @@ def initial(entries):
     Figure4      = str(entries['Figure4'].get())
 
 def Plot(entries):
+    try:
+        _Plot(entries)
+    except ValueError:
+        messagebox.showerror("Input Error",
+            "Invalid input: please ensure all fields contain numeric values.")
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+def _Plot(entries):
     #
     # Set initial values
     #

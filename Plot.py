@@ -1,11 +1,24 @@
 #!/usr/bin/env python
 from tkinter import *
+from tkinter import messagebox
 
 import matplotlib.pyplot as plt
 import AppFunc as func
 import BasicFunc as base
 
 PI = 3.141592653589793
+
+def _validate_inputs(func_to_wrap):
+    """Wrap a UI callback to catch invalid input and show an error dialog."""
+    def wrapper(entries):
+        try:
+            return func_to_wrap(entries)
+        except ValueError as e:
+            messagebox.showerror("Input Error",
+                "Invalid input: please ensure all fields contain numeric values.")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+    return wrapper
 
 def _set_entry(entry, value):
     """Update a ttk Entry field (handles readonly state)."""
@@ -20,6 +33,7 @@ def _set_entry(entry, value):
     except AttributeError:
         pass
 
+@_validate_inputs
 def get_ball_velocity(entries):
     #
     # Calculate ball velocity
@@ -42,6 +56,7 @@ def get_ball_velocity(entries):
     tmp2_ans_elevation= ("%5.2f" % tmp_ans_elevation).strip()
     _set_entry(entries['ball_theta'], tmp2_ans_elevation)
 
+@_validate_inputs
 def Optimize_Q_beta(entries):
     #
     # Set initial values
@@ -259,6 +274,7 @@ def Optimize_Q_beta(entries):
     plt.plot(array_Q_beta2, array_dQ_beta, 'r.', markersize=10, linewidth=1)
     plt.show()
 
+@_validate_inputs
 def Optimize_Q_beta_2(entries):
     #
     # Set initial values
@@ -437,6 +453,7 @@ def Optimize_Q_beta_2(entries):
     plt.plot(array_Q_beta2, array_dQ_beta, 'r.', markersize=10, linewidth=1)
     plt.show()
 
+@_validate_inputs
 def Plot(entries):
     #
     # Set initial values
