@@ -52,11 +52,14 @@ def Tracking(Weight, R_S, R_A, \
     rho_A2 = Weight*(percentage_of_forearm+percentage_of_hand)/(2*R_A2)
     omega_min = func.bending_arm_angle_min(R_S, R_A)
     PI = 3.141592653589793
-    h = func.h  
+    if (Method == 'Solution 4'):
+        h = func.h_RK4
+    else:
+        h = func.h
     #
     # Set initial loop conditions
     #
-    elements        = 20000 # sumulate within 2 seconds 
+    elements        = int(round(2.0/h)) # simulate within 2 seconds
     show_t          = np.zeros(elements)
     show_alpha      = np.zeros(elements)
     show_alpha_dot  = np.zeros(elements) 
@@ -117,6 +120,24 @@ def Tracking(Weight, R_S, R_A, \
     step = 0
     tmp_angle = show_theta[0] # (rad)
     t0 = 0.0
+    t_on = 0.0 # wrist-cock torque start time, resolved within a step (Solution 4)
+    #
+    # Accelerations at any time and state, for Solution 4 (RK4_IV evaluates them at every stage)
+    #
+    def accel(t_stage, alpha_rad, alpha_dot_rad, beta_rad, beta_dot_rad):
+        theta_rad = show_theta[0] - alpha_rad
+        if (Type == 'Type II'):
+            omega = func.bending_arm_angle(show_theta[0], alpha_rad, show_omega[0])
+        else:
+            omega = PI
+        R, delta, lambda1, sigma = func.bending_arm_para(R_S, R_A, omega)
+        J = func.J_TypeII(R_S, R_A, rho_S, rho_A1, rho_A2, R, delta, lambda1, sigma)
+        S_A = func.S_A_TypeII(R_S, R_A, rho_S, rho_A1, rho_A2, R, delta, lambda1, sigma)
+        Q_alpha_t = func.func_Q_alpha(t_stage, tau_Q_alpha, Q_alpha)
+        Q_beta_t = func.func_Q_beta(max(t_stage, t_on), tau_Q_beta, Q_beta, theta_rad, Set_theta*PI/180.0, t_on)
+        return func.swing_accelerations(a_x, a_y, phi, I, S_C, M_C, J, S_A, R, Q_alpha_t, Q_beta_t, \
+                                        alpha_dot_rad, beta_rad, beta_dot_rad, theta_rad)
+    #
     while (tmp_angle >= theta_final*PI/180.0 and i+1 < elements):
         #------------------------------------------------------------------
         if (Type == 'Type I'):
@@ -136,6 +157,9 @@ def Tracking(Weight, R_S, R_A, \
         #------------------------------------------------------------------
         if (show_theta[i] > Set_theta*PI/180.0):
             t0 = show_t[i]
+            # Solution 4: predict when the arm reaches the wrist-cock torque start angle
+            if (show_alpha_dot[i] > 0.0):
+                t_on = show_t[i] + (show_theta[i] - Set_theta*PI/180.0)/show_alpha_dot[i]
         #print t0
         #show_Q_beta[i]  = func.func_Q_beta(show_t[i], tau_Q_beta, Q_beta, show_theta[i], show_theta[0], t0)
         show_Q_beta[i]  = func.func_Q_beta(show_t[i], tau_Q_beta, Q_beta, show_theta[i], Set_theta*PI/180.0, t0)
@@ -165,7 +189,13 @@ def Tracking(Weight, R_S, R_A, \
                         show_beta[i], show_beta_dot[i], \
                         show_t[i], show_R[i], L)
         #------------------------------------------------------------------
-        if (Method == 'Solution 3'):
+        if (Method == 'Solution 4'):
+            show_alpha[i+1], show_alpha_dot[i+1], show_alpha_ddot[i+1], \
+            show_beta[i+1], show_beta_dot[i+1], show_beta_ddot[i+1]= \
+            func.RK4_IV(accel, show_t[i], h, \
+                        show_alpha[i], show_alpha_dot[i], \
+                        show_beta[i], show_beta_dot[i])
+        elif (Method == 'Solution 3'):
             show_alpha[i+1], show_alpha_dot[i+1], show_alpha_ddot[i+1], \
             show_beta[i+1], show_beta_dot[i+1], show_beta_ddot[i+1]= \
             func.RK4_III(a_x, a_y, phi, I, S_C, M_C, \
@@ -199,12 +229,22 @@ def Tracking(Weight, R_S, R_A, \
         show_t[i+1] = show_t[0] + h*(i+1)
         i = i+1
         #------------------------------------------------------------------
-        print_beta     = show_beta[step]*180/PI
-        print_VC_angle = show_VC_angle[step]*180.0/PI
-        #------------------------------------------------------------------
     if (tmp_angle >= theta_final*PI/180.0):
         raise RuntimeError('Swing did not reach the impact arm angle within %.1f sec; '
                            'increase the arm torque.' % (elements*h))
+    #
+    # The last step overshoots the impact arm angle; interpolate it back to the exact impact
+    #
+    fraction = (show_theta[step-1] - theta_final*PI/180.0)/(show_theta[step-1] - show_theta[step])
+    for arr in (show_t, show_alpha, show_alpha_dot, show_alpha_ddot, \
+                show_beta, show_beta_dot, show_beta_ddot, show_theta, \
+                show_VC, show_VC_x, show_VC_y, show_VC_angle, show_VC_check, \
+                show_arm_x, show_arm_y, show_club_x, show_club_y, show_O_x, show_O_y, \
+                show_arm1_x, show_arm1_y, show_arm2_x, show_arm2_y, show_arm3_x, show_arm3_y, \
+                show_Q_alpha, show_Q_beta, show_omega, show_R, show_J, show_S_A):
+        arr[step] = arr[step-1] + fraction*(arr[step] - arr[step-1])
+    print_beta     = show_beta[step]*180/PI
+    print_VC_angle = show_VC_angle[step]*180.0/PI
     print('    Swing time:        ', ("%5.4f" % show_t[step]).strip(), '(sec)')
     print('    Clubhead velocity: ', ("%5.2f" % show_VC[step]).strip(), '(m/sec)')
     print('    Clubhead angle:    ', ("%5.2f" % print_VC_angle).strip(), '(degree)')

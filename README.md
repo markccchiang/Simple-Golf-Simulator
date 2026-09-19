@@ -55,7 +55,7 @@ The simulator models a two-degree-of-freedom golf swing using torque-driven angu
 - **Swing conditions** -- swing plane angle, initial/impact arm angle, wrist-cock angle, swing type (Type I / Type II)
 - **Torques** -- arm torque, wrist-cock torque (with automatic optimization)
 
-Three numerical solution methods are available, all based on 4th-order Runge-Kutta integration.
+Four numerical solution methods are available. Solution 4 (the default) is the classical 4th-order Runge-Kutta method; Solutions 1–3 are the original Runge-Kutta-based schemes, which are first-order accurate overall and are kept for comparison.
 
 ### Ball Trajectory
 

@@ -217,7 +217,9 @@ Numerical Solutions of Two-Rod Model
 
 Since the equations for :math:`\ddot{\alpha}` and :math:`\ddot{\beta}` are non-linear and coupled, there
 is no analytical solution. It is a typical chaos system and we can only use
-numerical methods to approach the solution. Three Runge-Kutta-based methods are provided.
+numerical methods to approach the solution. Four Runge-Kutta-based methods are provided. Solution 4 (the
+default) is the classical fourth-order Runge-Kutta method; Solutions 1--3 are the original methods of this
+model and are kept for comparison.
 
 Solution 1
 ^^^^^^^^^^
@@ -247,6 +249,34 @@ Solution 3
 Given initial conditions, we compute :math:`\ddot{\beta}` first and then substitute it into the equation
 for :math:`\ddot{\alpha}`. This method also accounts for the correlation, considering the average effects of
 next three and four steps of :math:`\ddot{\alpha}` and :math:`\ddot{\beta}`.
+
+In Solutions 1--3 the angles :math:`\alpha, \beta`, the arm geometry (:math:`R, J, S_A`) and the torques are held
+fixed within each time step, and :math:`\alpha, \beta` are advanced with the Euler step above. The overall accuracy
+is therefore first order in :math:`h`: halving :math:`h` halves the error. With :math:`h = 0.0001` sec, the clubhead
+impact velocity is within about 0.06 m/s, and the impact angle within about 0.2 degree, of the converged solution.
+
+Solution 4
+^^^^^^^^^^
+
+The coupled equations for :math:`\ddot{\alpha}` and :math:`\ddot{\beta}` are linear in the two accelerations, so at
+any state they can be solved exactly as a :math:`2 \times 2` linear system:
+
+.. math::
+
+   \begin{pmatrix} A & -B \\ -B & I \end{pmatrix}
+   \begin{pmatrix} \ddot{\alpha} \\ \ddot{\beta} \end{pmatrix} =
+   \begin{pmatrix} r_\alpha \\ r_\beta \end{pmatrix}, \qquad
+   A = J + I + M_C R^2 + 2 R S_C \cos\beta, \quad B = I + R S_C \cos\beta
+
+where :math:`r_\alpha` and :math:`r_\beta` collect the torque, velocity and gravity terms. The state
+:math:`(\alpha, \dot{\alpha}, \beta, \dot{\beta})` is then integrated with the classical fourth-order Runge-Kutta method,
+re-evaluating the arm geometry, :math:`\theta` and the torques at every stage. The start time of the wrist-cock
+torque is resolved within the time step. The error is fourth order in :math:`h`, so a larger step
+:math:`h = 0.0004` sec is used: the impact velocity and angle are then within 0.001 m/s and 0.003 degree of the
+converged solution, and the simulation runs about twice as fast as Solutions 1--3.
+
+For every method, the last time step is interpolated so that the reported impact values are at exactly the
+impact arm angle.
 
 Simulation Studies
 ------------------
@@ -311,7 +341,7 @@ The torques are modeled as:
 Case 1: Compare Three Solutions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Using the parameter settings above, the three solutions produce nearly identical results:
+Using the parameter settings above, the four solutions produce nearly identical results:
 
 .. list-table:: Simulation results from three numerical methods
    :header-rows: 1
@@ -321,16 +351,20 @@ Using the parameter settings above, the three solutions produce nearly identical
      - :math:`\theta_{\vec{V_C}}` (degree)
      - Swing time (sec)
    * - Solution 1
-     - 52.83
-     - 0.18
+     - 52.82
+     - 0.16
      - 0.2124
    * - Solution 2
      - 52.77
-     - 0.48
-     - 0.2125
+     - 0.34
+     - 0.2124
    * - Solution 3
      - 52.79
-     - 0.42
+     - 0.24
+     - 0.2124
+   * - Solution 4
+     - 52.76
+     - 0.39
      - 0.2125
 
 Case 2: The Effect of Arm Torque

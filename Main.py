@@ -178,8 +178,8 @@ if __name__ == '__main__':
    sec5 = ttk.LabelFrame(left_panel, text="  (V) Simulate the Swing  ", style='Section.TLabelframe')
    sec5.grid(row=4, column=0, sticky='ew', pady=section_pad)
 
-   add_option_menu(sec5, 0, "24. Simulation method:", "Solution 3",
-                   ["Solution 1", "Solution 2", "Solution 3"], 'Method')
+   add_option_menu(sec5, 0, "24. Simulation method:", "Solution 4",
+                   ["Solution 1", "Solution 2", "Solution 3", "Solution 4"], 'Method')
 
    ttk.Label(sec5, text="25. Results to plot:", font=label_font, anchor='w').grid(
        row=1, column=0, columnspan=2, sticky='w', padx=pad_x, pady=pad_y)

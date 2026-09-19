@@ -109,7 +109,8 @@ The optimized value is filled into item 19. Plots of :math:`\beta` vs :math:`-Q_
 Simulate the Swing (V)
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-24. **Simulation method** -- Solution 1, 2 or 3 (default: Solution 3).
+24. **Simulation method** -- Solution 1, 2, 3 or 4 (default: Solution 4). Solution 4 is the most accurate and
+    the fastest; Solutions 1--3 are the original methods, kept for comparison. See :ref:`numerical-solutions`.
 25. **Results to plot** -- Check any combination of: Tracks, Angles, Angular velocities,
     Angular accelerations, Clubhead velocity, Torques, Arm length, 1st and 2nd moments.
 

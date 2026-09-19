@@ -20,8 +20,9 @@ The numerical solution used in this simulator is the Runge-Kutta method, which i
 iterative method often used in temporal discretization for the approximation of solutions
 of differential equations. It is suitable for golf ball trajectory calculation. However, for the golf
 swing, since there are many parameters in the model, we have to deal with this method carefully.
-Three kinds of numerical solutions are listed in :ref:`numerical-solutions`, and if they agree with each other, then we
-can safely use it under such conditions.
+Four kinds of numerical solutions are listed in :ref:`numerical-solutions`, and if they agree with each other, then we
+can safely use it under such conditions. Solution 4, the classical fourth-order Runge-Kutta method, is the most
+accurate and is the default.
 
 The numerical solutions of fluid dynamics for a golf ball dimple is another big subject which
 is not included in this report. Usually it relies on Finite Element Method or Finite Volume

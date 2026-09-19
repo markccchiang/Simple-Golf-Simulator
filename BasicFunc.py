@@ -5,6 +5,7 @@ import cmath
 # Fixed parameters
 #
 h = 0.0001 # time interval for step-by-step calculation (sec)
+h_RK4 = 0.0004 # time interval for Solution 4 (sec); it is 4th-order accurate, so a larger step suffices
 
 #
 # Physical parameters
@@ -196,6 +197,55 @@ def RK4_III(a_x, a_y, phi, I, S_C, M_C, \
     #----------------------------------------------------------------------------------------------------------------
     alpha_rad_n1 = alpha_rad +  alpha_dot_rad_n1*h
     beta_rad_n1 = beta_rad + beta_dot_rad_n1*h
+    #----------------------------------------------------------------------------------------------------------------
+    return alpha_rad_n1, alpha_dot_rad_n1, k1, beta_rad_n1, beta_dot_rad_n1, q1
+
+def swing_accelerations(a_x, a_y, phi, I, S_C, M_C, \
+                        J, S_A, R, \
+                        set_Q_alpha, set_Q_beta, \
+                        alpha_dot_rad, \
+                        beta_rad, beta_dot_rad, \
+                        theta_rad):
+    #
+    # Solve the coupled equations of func_alpha_ddot and func_beta_ddot exactly:
+    #   A*alpha_ddot - B*beta_ddot = rhs_alpha
+    #  -B*alpha_ddot + I*beta_ddot = rhs_beta
+    #
+    A = J + I + M_C*R**2 + 2*R*S_C*cos(beta_rad)
+    B = I + R*S_C*cos(beta_rad)
+    rhs_alpha = A*func_alpha_ddot(a_x, a_y, phi, I, S_C, M_C, J, S_A, R, set_Q_alpha, alpha_dot_rad, beta_rad, beta_dot_rad, 0.0, theta_rad)
+    rhs_beta = I*func_beta_ddot(a_x, a_y, phi, I, S_C, R, set_Q_beta, alpha_dot_rad, 0.0, beta_rad, theta_rad)
+    det = A*I - B**2
+    alpha_ddot_ans = (rhs_alpha*I + B*rhs_beta)/det
+    beta_ddot_ans = (A*rhs_beta + B*rhs_alpha)/det
+    return alpha_ddot_ans, beta_ddot_ans
+
+def RK4_IV(accel, t, h, \
+           alpha_rad, alpha_dot_rad, \
+           beta_rad, beta_dot_rad):
+    #
+    # Classical 4th-order Runge-Kutta on the full state (alpha, alpha_dot, beta, beta_dot).
+    # accel(t, alpha, alpha_dot, beta, beta_dot) returns (alpha_ddot, beta_ddot), re-evaluating
+    # the arm geometry and torques at every stage.
+    #----------------------------------------------------------------------------------------------------------------
+    k1, q1 = accel(t, alpha_rad, alpha_dot_rad, beta_rad, beta_dot_rad)
+    #----------------------------------------------------------------------------------------------------------------
+    alpha_dot2 = alpha_dot_rad + (1/2)*k1*h
+    beta_dot2 = beta_dot_rad + (1/2)*q1*h
+    k2, q2 = accel(t + h/2, alpha_rad + (1/2)*alpha_dot_rad*h, alpha_dot2, beta_rad + (1/2)*beta_dot_rad*h, beta_dot2)
+    #----------------------------------------------------------------------------------------------------------------
+    alpha_dot3 = alpha_dot_rad + (1/2)*k2*h
+    beta_dot3 = beta_dot_rad + (1/2)*q2*h
+    k3, q3 = accel(t + h/2, alpha_rad + (1/2)*alpha_dot2*h, alpha_dot3, beta_rad + (1/2)*beta_dot2*h, beta_dot3)
+    #----------------------------------------------------------------------------------------------------------------
+    alpha_dot4 = alpha_dot_rad + k3*h
+    beta_dot4 = beta_dot_rad + q3*h
+    k4, q4 = accel(t + h, alpha_rad + alpha_dot3*h, alpha_dot4, beta_rad + beta_dot3*h, beta_dot4)
+    #----------------------------------------------------------------------------------------------------------------
+    alpha_rad_n1 = alpha_rad + (h/6)*(alpha_dot_rad + 2*alpha_dot2 + 2*alpha_dot3 + alpha_dot4)
+    alpha_dot_rad_n1 = alpha_dot_rad + (h/6)*(k1 + 2*k2 + 2*k3 + k4)
+    beta_rad_n1 = beta_rad + (h/6)*(beta_dot_rad + 2*beta_dot2 + 2*beta_dot3 + beta_dot4)
+    beta_dot_rad_n1 = beta_dot_rad + (h/6)*(q1 + 2*q2 + 2*q3 + q4)
     #----------------------------------------------------------------------------------------------------------------
     return alpha_rad_n1, alpha_dot_rad_n1, k1, beta_rad_n1, beta_dot_rad_n1, q1
 
