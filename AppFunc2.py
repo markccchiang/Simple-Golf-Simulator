@@ -14,6 +14,8 @@ def TRACK(m, D, rho_air, C_D, C_L, \
     #
     #---------------------------------------------------
     PI             = 3.141592653589793
+    if (v_ball <= 0.0):
+        raise RuntimeError('Launch speed must be positive.')
     theta_rad      = theta*PI/180 # (rad)
     phi_rad        = phi*PI/180 # (rad)
     w_theta_rad    = w_theta*PI/180 # (rad)
@@ -60,7 +62,7 @@ def TRACK(m, D, rho_air, C_D, C_L, \
     tmp_z = z0
     tmp_vz= 0
     step  = 0
-    while (tmp_z >= altitude or tmp_vz >= 0 and j+1 < elements):
+    while ((tmp_z >= altitude or tmp_vz >= 0) and j+1 < elements):
         show_t[j+1], show_vx[j+1], show_vy[j+1], show_vz[j+1], \
         show_x[j+1],  show_y[j+1], show_z[j+1] = \
         func.RK4(show_t[j], \
@@ -73,6 +75,11 @@ def TRACK(m, D, rho_air, C_D, C_L, \
         tmp_vz= show_vz[j+1]
         j=j+1
         step=j
+    if (tmp_z >= altitude or tmp_vz >= 0):
+        raise RuntimeError('Ball is still in flight after %.0f sec.' % (elements*func.h))
+    if (max(show_z[:step+1]) < altitude):
+        raise RuntimeError('Ball never reaches the target altitude (apex %.2f m < %.2f m).'
+                           % (max(show_z[:step+1]), altitude))
     print_show_x = ("%5.3f" % show_x[step]).strip()
     print_show_y = ("%5.3f" % show_y[step]).strip()
     print_show_t = ("%5.3f" % show_t[step]).strip()

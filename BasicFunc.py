@@ -72,10 +72,7 @@ def func_VC(alpha_dot_rad, beta_rad, beta_dot_rad, R, L):
     VC_part2 = L**2*beta_dot_rad**2
     VC_part3 = -2*(L**2 + R*L*cos(beta_rad))*alpha_dot_rad*beta_dot_rad
     VC_sum = VC_part1 + VC_part2 + VC_part3
-    if (VC_sum >= 0):
-      return sqrt(VC_sum)
-    else:
-      return 'V_C value is not a real number!'
+    return sqrt(max(VC_sum, 0.0)) # VC_sum = |V_C|^2 >= 0, so a negative value is only round-off
 
 def func_general_xy(o_x, o_y, angle, length):
     ans_general_x = o_x + cos(angle)*length

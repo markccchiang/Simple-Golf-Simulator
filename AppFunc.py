@@ -3,6 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import BasicFunc as func
 
+def _rod(start_x, start_y, end_x, end_y, n):
+    #
+    # Interleave start/end points of n rods as [s0, e0, s1, e1, ...] for plotting
+    #
+    rod_x = np.column_stack((start_x[:n], end_x[:n])).ravel()
+    rod_y = np.column_stack((start_y[:n], end_y[:n])).ravel()
+    return rod_x, rod_y
+
 def Tracking(Weight, R_S, R_A, \
              M_C_head, M_C_shaft, L_C_head, L_C_shaft, \
              a_x, a_y, t, \
@@ -67,18 +75,6 @@ def Tracking(Weight, R_S, R_A, \
     show_arm_y      = np.zeros(elements)
     show_club_x     = np.zeros(elements)
     show_club_y     = np.zeros(elements)
-    show_arm_rod_x  = np.zeros(elements)
-    show_arm_rod_y  = np.zeros(elements)
-    show_arm1_rod_x = np.zeros(elements)
-    show_arm1_rod_y = np.zeros(elements)
-    show_arm2_rod_x = np.zeros(elements)
-    show_arm2_rod_y = np.zeros(elements)
-    show_arm3_rod_x = np.zeros(elements)
-    show_arm3_rod_y = np.zeros(elements)
-    show_arm4_rod_x = np.zeros(elements)
-    show_arm4_rod_y = np.zeros(elements)
-    show_club_rod_x = np.zeros(elements)
-    show_club_rod_y = np.zeros(elements)
     show_O_x        = np.zeros(elements)
     show_O_y        = np.zeros(elements)
     show_Q_alpha    = np.zeros(elements)
@@ -200,12 +196,15 @@ def Tracking(Weight, R_S, R_A, \
         tmp_angle = show_theta[i]
         step = i
         #------------------------------------------------------------------
-        show_t[i+1] = show_t[0] + h*i
+        show_t[i+1] = show_t[0] + h*(i+1)
         i = i+1
         #------------------------------------------------------------------
         print_beta     = show_beta[step]*180/PI
         print_VC_angle = show_VC_angle[step]*180.0/PI
         #------------------------------------------------------------------
+    if (tmp_angle >= theta_final*PI/180.0):
+        raise RuntimeError('Swing did not reach the impact arm angle within %.1f sec; '
+                           'increase the arm torque.' % (elements*h))
     print('    Swing time:        ', ("%5.4f" % show_t[step]).strip(), '(sec)')
     print('    Clubhead velocity: ', ("%5.2f" % show_VC[step]).strip(), '(m/sec)')
     print('    Clubhead angle:    ', ("%5.2f" % print_VC_angle).strip(), '(degree)')
@@ -218,36 +217,12 @@ def Tracking(Weight, R_S, R_A, \
     #
     # Input data for drawing rod and arm
     #
-    for j in range(step):
-        show_arm_rod_x[j*2]    = show_O_x[j]
-        show_arm_rod_x[j*2+1]  = show_arm_x[j]
-        show_arm_rod_y[j*2]    = show_O_y[j]
-        show_arm_rod_y[j*2+1]  = show_arm_y[j]
-
-        show_arm1_rod_x[j*2]    = show_arm_x[j]
-        show_arm1_rod_x[j*2+1]  = show_arm1_x[j]
-        show_arm1_rod_y[j*2]    = show_arm_y[j]
-        show_arm1_rod_y[j*2+1]  = show_arm1_y[j]
-
-        show_arm2_rod_x[j*2]    = show_arm1_x[j]
-        show_arm2_rod_x[j*2+1]  = show_arm2_x[j]
-        show_arm2_rod_y[j*2]    = show_arm1_y[j]
-        show_arm2_rod_y[j*2+1]  = show_arm2_y[j]
-
-        show_arm3_rod_x[j*2]    = show_arm2_x[j]
-        show_arm3_rod_x[j*2+1]  = show_arm3_x[j]
-        show_arm3_rod_y[j*2]    = show_arm2_y[j]
-        show_arm3_rod_y[j*2+1]  = show_arm3_y[j]
-
-        show_arm4_rod_x[j*2]    = show_arm3_x[j]
-        show_arm4_rod_x[j*2+1]  = show_arm_x[j]
-        show_arm4_rod_y[j*2]    = show_arm3_y[j]
-        show_arm4_rod_y[j*2+1]  = show_arm_y[j]
-
-        show_club_rod_x[j*2]   = show_arm_x[j]
-        show_club_rod_x[j*2+1] = show_club_x[j]
-        show_club_rod_y[j*2]   = show_arm_y[j]
-        show_club_rod_y[j*2+1] = show_club_y[j]
+    show_arm_rod_x,  show_arm_rod_y  = _rod(show_O_x, show_O_y, show_arm_x, show_arm_y, step)
+    show_arm1_rod_x, show_arm1_rod_y = _rod(show_arm_x, show_arm_y, show_arm1_x, show_arm1_y, step)
+    show_arm2_rod_x, show_arm2_rod_y = _rod(show_arm1_x, show_arm1_y, show_arm2_x, show_arm2_y, step)
+    show_arm3_rod_x, show_arm3_rod_y = _rod(show_arm2_x, show_arm2_y, show_arm3_x, show_arm3_y, step)
+    show_arm4_rod_x, show_arm4_rod_y = _rod(show_arm3_x, show_arm3_y, show_arm_x, show_arm_y, step)
+    show_club_rod_x, show_club_rod_y = _rod(show_arm_x, show_arm_y, show_club_x, show_club_y, step)
     #
     # Return
     #

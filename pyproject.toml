@@ -12,6 +12,9 @@ dependencies = [
 ]
 
 [dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
 docs = [
     "sphinx",
     "sphinx-rtd-theme",
@@ -19,3 +22,7 @@ docs = [
 
 [tool.uv]
 package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
