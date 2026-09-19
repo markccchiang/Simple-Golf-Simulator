@@ -23,7 +23,7 @@ if __name__ == '__main__':
    root.title("The Simple Golf Simulator (Copyright @ 2026 C.-C. Chiang)")
 
    # Window icon (PNG needs Tk 8.6+; skip silently on older Tk)
-   icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', 'logo.png')
+   icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, 'assets', 'logo.png')
    try:
        root.icon = PhotoImage(file=icon_path)
        root.iconphoto(True, root.icon)

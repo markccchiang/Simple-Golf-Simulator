@@ -25,7 +25,7 @@ docs = [
 package = false
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = ["src"]
 testpaths = ["tests"]
 filterwarnings = ["ignore:FigureCanvasAgg is non-interactive:UserWarning"]
 

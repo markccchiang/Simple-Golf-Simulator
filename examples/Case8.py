@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import _paths  # noqa: F401  (puts ../src on the import path)
 from math import sqrt
 import matplotlib.pyplot as plt
 import AppFunc2 as func

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import _paths  # noqa: F401  (puts ../src on the import path)
+from matplotlib import cm
 import matplotlib.pyplot as plt
 import AppFunc as func
 
@@ -13,20 +15,20 @@ M_C_head   = 0.2 # mass of the club head (kg)
 M_C_shaft  = 0.1 # mass of the club shaft (kg)
 L_C_head   = 0.1 # club head length (m)
 L_C_shaft  = 1.0 # club shaft length (m)
-#Q_alpha    = 100.0 # (N-m)
+Q_alpha    = 100.0 # (N-m)
 #Q_beta     = -20.64 # (N-m)
 tau_Q_alpha= 0.01 # (sec)
 tau_Q_beta = 0.01 # (sec)
 a_x        = 0.0 # arm acceleration in horizontal direction (m/sec^2)
 a_y        = 0.0 # arm acceleration in vertical direction (m/sec^2)
 phi        = 60.0 # swing plane angle (degree)
-theta      = 135.0 # (degree) 
+#theta      = 135.0 # (degree) 
 theta_final= 0.0 # (degree) 
 beta_final = 0.0 # (degree) 
 alpha      = 0.0 # (degree)
 alpha_dot  = 0.0 # (degree/sec)
 alpha_ddot = 0.0 # (degree/sec^2) 
-beta       = 120.0 # (degree) 
+#beta       = 120.0 # (degree) 
 beta_dot   = 0.0 # (degree/sec)
 beta_ddot  = 0.0 # (degree/sec^2)
 t          = 0.0 # (sec)
@@ -34,7 +36,7 @@ Type       = 'Type I'
 Q_beta_min = -50.0 # (N-m)
 Q_beta_max = 0.0 # (N-m)
 Method     = 'Solution 3'
-Set_theta  = theta # (degree) 
+#Set_theta  = theta # (degree) 
 
 def Optimize_Q_beta(Weight, R_S, R_A, \
                     M_C_head, M_C_shaft, L_C_head, L_C_shaft, \
@@ -194,61 +196,78 @@ def Optimize_Q_beta(Weight, R_S, R_A, \
         tmp2_set_Q_beta = tmp_set_Q_beta
 
     #
-    # Print results
+    # return results
     #
     tmp2_set_Q_beta = ("%5.2f" % tmp2_set_Q_beta).strip()
     tmp_VC = ("%5.2f" % tmp_VC).strip()
-    #print '********************************************'
-    #print 'The optimized wrist-cock torque:', tmp2_set_Q_beta, '(N-m)' 
-    #print 'The clubhead velocity:', tmp2_VC, '(m/sec)'
-    #print '********************************************'
     return float(tmp2_set_Q_beta), float(tmp_VC)
 
 if __name__ == '__main__':
-    array_Q_alpha = []
+    array_theta = []
+    array_beta = []
     array_Q_beta = []
     array_VC = []
-
     #
     # Do loop
     #
-    for i in range(50, 251, 1):
-    #for i in range(100, 103, 1):
-      set_Q_alpha = i*1.0
-      Q_beta, VC = Optimize_Q_beta(Weight, R_S, R_A, \
-                                   M_C_head, M_C_shaft, L_C_head, L_C_shaft, \
-                                   a_x, a_y, t, \
-                                   set_Q_alpha, phi, theta, \
-                                   alpha, alpha_dot, alpha_ddot, \
-                                   beta, beta_dot, beta_ddot, \
-                                   theta_final, Type, Sex, Method, \
-                                   tau_Q_alpha, tau_Q_beta, Set_theta)
-      array_Q_alpha.append(set_Q_alpha)
-      array_Q_beta.append(-1*Q_beta)
-      array_VC.append(VC)
-      print('********************************************')
-      print('The arm torque:', set_Q_alpha, '(N-m)')
-      print('The optimized wrist-cock torque:', Q_beta, '(N-m)')
-      print('The clubhead velocity:', VC, '(m/sec)')
-      print('********************************************')
-    #print array_Q_alpha, array_Q_beta, array_VC
-
+    ##for i in range(90, 136, 1):
+    ##  for j in range(90, 136, 1):
+    for i in range(0, 91, 1):
+      for j in range(0, 91, 1):
+    #for i in range(0, 7, 1):
+    #  for j in range(0, 7, 1):
+        set_theta = 90+i/2.0
+        set_beta = 90+j/2.0
+        #print set_theta, set_beta
+        set_theta2 = set_theta
+        Q_beta, VC = Optimize_Q_beta(Weight, R_S, R_A, \
+                                     M_C_head, M_C_shaft, L_C_head, L_C_shaft, \
+                                     a_x, a_y, t, \
+                                     Q_alpha, phi, set_theta, \
+                                     alpha, alpha_dot, alpha_ddot, \
+                                     set_beta, beta_dot, beta_ddot, \
+                                     theta_final, Type, Sex, Method, \
+                                     tau_Q_alpha, tau_Q_beta, set_theta2)
+        array_theta.append(set_theta)
+        array_beta.append(set_beta)
+        array_Q_beta.append(-1*Q_beta)
+        array_VC.append(VC)
+        #print '********************************************'
+        #print 'The initial arm angle:', set_theta, '(degree)'
+        #print 'The initial wrist-cock angle:', set_beta, '(degree)'
+        #print 'The optimized wrist-cock torque:', Q_beta, '(N-m)' 
+        #print 'The clubhead velocity:', VC, '(m/sec)'
+        #print '********************************************'
+    #print array_theta
+    #print array_beta
+    #print array_VC
+    #print array_Q_beta 
+    #np.savetxt('Case4.dat', (array_theta, array_beta, array_VC, array_Q_beta), fmt='%5.3f')
     #
     # Plot results
     #
     plt.figure(1)
-    plt.xlabel(r'$Q_\alpha$ (N-m)', fontsize=25)
-    plt.ylabel(r'$-Q_\beta$ (N-m)', fontsize=25)
+    plt.xlabel(r'$\theta_0$ (degree)', fontsize=25)
+    plt.ylabel(r'$\beta_0$ (degree)', fontsize=25)
     plt.xticks(fontsize=25)
     plt.yticks(fontsize=25)
-    plt.plot(array_Q_alpha, array_Q_beta, 'k.-', markersize=10, linewidth=5)
-    plt.savefig('Case2-Fig1.eps', format='eps', dpi=1000, bbox_inches='tight')
+    plt.hexbin(array_theta, array_beta, C=array_VC, gridsize=45, cmap=cm.jet, bins=None)
+    plt.axis([min(array_theta)-1, max(array_theta)+1, min(array_beta)-1, max(array_beta)+1])
+    #cb = plt.colorbar(image,spacing='uniform',extend='max')
+    cb = plt.colorbar()
+    cb.set_label('Clubhead velocity (m/sec)', fontsize=25)
+    plt.savefig('Case4-Fig1.eps', format='eps', dpi=1000, bbox_inches='tight')
     #
     plt.figure(2)
-    plt.xlabel(r'$Q_\alpha$ (N-m)', fontsize=25)
-    plt.ylabel('Clubhead velocity (m/sec)', fontsize=25)
+    plt.xlabel(r'$\theta_0$ (degree)', fontsize=25)
+    plt.ylabel(r'$\beta_0$ (degree)', fontsize=25)
     plt.xticks(fontsize=25)
     plt.yticks(fontsize=25)
-    plt.plot(array_Q_alpha, array_VC, 'k.-', markersize=10, linewidth=5)
-    plt.savefig('Case2-Fig2.eps', format='eps', dpi=1000, bbox_inches='tight')
+    plt.hexbin(array_theta, array_beta, C=array_Q_beta, gridsize=45, cmap=cm.jet, bins=None)
+    plt.axis([min(array_theta)-1, max(array_theta)+1, min(array_beta)-1, max(array_beta)+1])
+    #cb = plt.colorbar(image,spacing='uniform',extend='max')
+    cb = plt.colorbar()
+    cb.set_label(r'$-Q_\beta$ (N-m)', fontsize=25)
+    plt.savefig('Case4-Fig2.eps', format='eps', dpi=1000, bbox_inches='tight')
+    #plt.show()
 

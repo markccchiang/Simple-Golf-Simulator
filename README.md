@@ -39,7 +39,7 @@ sudo dnf install python3-tkinter
 ## Getting Started
 
 ```bash
-uv run Main.py        # or: python Main.py
+uv run src/Main.py        # or: python src/Main.py
 ```
 
 Each step uses the previous step's results, so click the buttons in order: **Optimize wrist-cock torque** → **Simulate / Plot Golf Swing** → **Calculate launch speed and elevation angle from impact** → **Simulate / Plot Ball Trajectory**. If a step is skipped, the error message names the button to click first.
@@ -103,15 +103,15 @@ Then open `docs/_build/html/index.html` in your browser.
 
 | File | Description |
 |------|-------------|
-| `Main.py` | GUI application entry point |
-| `BasicFunc.py` | Core swing physics |
-| `BasicFunc2.py` | Ball trajectory physics |
-| `AppFunc.py` | Swing simulation functions |
-| `AppFunc2.py` | Ball trajectory simulation functions |
-| `Plot.py` | Swing visualization |
-| `Plot2.py` | Ball trajectory visualization |
-| `UIFunc.py` | Shared input reading and error dialogs |
-| `Case1.py` - `Case10.py` | Standalone example cases |
+| `src/Main.py` | GUI application entry point |
+| `src/BasicFunc.py` | Core swing physics |
+| `src/BasicFunc2.py` | Ball trajectory physics |
+| `src/AppFunc.py` | Swing simulation functions |
+| `src/AppFunc2.py` | Ball trajectory simulation functions |
+| `src/Plot.py` | Swing visualization |
+| `src/Plot2.py` | Ball trajectory visualization |
+| `src/UIFunc.py` | Shared input reading and error dialogs |
+| `examples/Case1.py` - `examples/Case10.py` | Standalone example cases, e.g. `uv run examples/Case1.py`; figures are saved as `.eps` in the current directory |
 | `tests/` | pytest suite |
 | `pyproject.toml`, `uv.lock` | Dependencies (uv) |
 

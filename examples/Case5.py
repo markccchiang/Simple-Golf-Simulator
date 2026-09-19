@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import _paths  # noqa: F401  (puts ../src on the import path)
 import matplotlib.pyplot as plt
 import AppFunc as func
 

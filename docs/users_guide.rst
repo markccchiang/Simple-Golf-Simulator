@@ -28,15 +28,16 @@ With pip on Linux, ``tkinter`` may need to be installed separately:
    # Fedora
    sudo dnf install python3-tkinter
 
-The main files are ``AppFunc.py``, ``AppFunc2.py``, ``BasicFunc.py``,
-``BasicFunc2.py``, ``Plot.py``, ``Plot2.py``, ``UIFunc.py`` and ``Main.py``. All must be in the same
-directory. The case files ``Case1.py`` through ``Case10.py`` are standalone demonstration scripts.
+The program files are in ``src/``: ``AppFunc.py``, ``AppFunc2.py``, ``BasicFunc.py``,
+``BasicFunc2.py``, ``Plot.py``, ``Plot2.py``, ``UIFunc.py`` and ``Main.py``. The case files ``Case1.py``
+through ``Case10.py`` in ``examples/`` are standalone demonstration scripts; run one with, for example,
+``uv run examples/Case1.py`` (or ``python examples/Case1.py``).
 
 To start the main program:
 
 .. code-block:: bash
 
-   uv run Main.py     # or, with pip: python Main.py
+   uv run src/Main.py     # or, with pip: python src/Main.py
 
 The Main Control Panel
 ----------------------
