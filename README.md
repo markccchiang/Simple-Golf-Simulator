@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="Simple Golf Simulator logo" width="160">
+</p>
+
 # Simple Golf Simulator
 
 A physics-based golf swing and ball trajectory simulator with an interactive GUI built using Tkinter and Matplotlib.

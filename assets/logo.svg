@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-labelledby="title">
+  <title id="title">Simple Golf Simulator</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0e4a36"/>
+      <stop offset="1" stop-color="#082c20"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Badge -->
+  <rect width="512" height="512" rx="104" fill="url(#bg)"/>
+
+  <g transform="translate(0 18)">
+  <!-- Ground -->
+  <line x1="56" y1="372" x2="456" y2="372" stroke="#7fd1a8" stroke-width="6" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- Clubhead swing arc (radius = arm + club about the hub) -->
+  <path d="M 29 285 A 210 210 0 0 0 190 360" fill="none" stroke="#7fd1a8" stroke-width="5"
+        stroke-dasharray="2 14" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- Earlier pose: wrist cocked -->
+  <g stroke="#f4f1e8" stroke-width="10" stroke-linecap="round" opacity="0.3">
+    <line x1="190" y1="150" x2="108" y2="207"/>
+    <line x1="108" y1="207" x2="45" y2="117"/>
+  </g>
+
+  <!-- Ball flight: one dot per time step, steeper descent from drag -->
+  <path d="M 212 360 C 272 150 372 40 432 364" fill="none" stroke="#f5c451" stroke-width="10"
+        stroke-dasharray="0 22" stroke-linecap="round"/>
+
+  <!-- Flag -->
+  <line x1="436" y1="372" x2="436" y2="290" stroke="#f4f1e8" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 438 290 L 472 303 L 438 316 Z" fill="#e8553d"/>
+
+  <!-- Impact pose: hub -> arm -> club -->
+  <g stroke="#f4f1e8" stroke-linecap="round">
+    <line x1="190" y1="150" x2="190" y2="250" stroke-width="14"/>
+    <line x1="190" y1="250" x2="190" y2="352" stroke-width="10"/>
+    <line x1="182" y1="360" x2="202" y2="360" stroke-width="16"/>
+  </g>
+  <circle cx="190" cy="150" r="17" fill="#082c20" stroke="#f4f1e8" stroke-width="8"/>
+  <circle cx="190" cy="250" r="11" fill="#f4f1e8"/>
+
+  <!-- Ball -->
+  <circle cx="220" cy="360" r="12" fill="#ffffff"/>
+  </g>
+</svg>
