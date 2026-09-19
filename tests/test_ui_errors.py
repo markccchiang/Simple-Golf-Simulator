@@ -15,6 +15,12 @@ class FakeEntry:
     def get(self):
         return self.value
 
+    def delete(self, first, last):
+        self.value = ''
+
+    def insert(self, index, value):
+        self.value = value
+
 
 @pytest.fixture
 def dialogs(monkeypatch):
@@ -80,3 +86,51 @@ def test_shoulder_radius_not_smaller_than_arm_length_is_rejected_before_simulati
     title, msg = dialogs[0]
     assert title == 'Input Error'
     assert 'shoulder radius (item 3)' in msg
+
+
+# --- Wrist-cock torque optimization ------------------------------------------
+
+SWING_DEFAULTS = dict(Gender='Male', Weight='70', R_S='0.17', R_A='0.6', M_C_head='0.2', M_C_shaft='0.1',
+                      L_C_head='0.1', L_C_shaft='1.0', phi='60', theta='135', theta_final='0', beta='120',
+                      beta_final='0', a_x='0', a_y='0', Type='Type I', Q_alpha='100', tau_Q_alpha='0.01',
+                      set_theta='135', tau_Q_beta='0.01', Q_beta_min='-50', Q_beta_max='0',
+                      Method='Solution 4', Q_beta='N/A')
+
+
+def swing_entries(**overrides):
+    return {key: FakeEntry(value) for key, value in {**SWING_DEFAULTS, **overrides}.items()}
+
+
+def test_best_torque_is_the_closest_of_all_tries_not_just_better_than_the_previous_one():
+    # Tried torques 0, -1, -2, -3 N-m (stored negated) with impact wrist-cock angles 10, 0.1, 5, -3 degree.
+    # Comparing each try only with the previous one would pick -3 N-m; the closest to 0 degree is -1 N-m.
+    assert Plot._best_Q_beta([0.0, 1.0, 2.0, 3.0], [10.0, 0.1, 5.0, -3.0], 0.0, -50.0, 0.0) == -1.0
+
+
+def test_best_torque_ignores_tries_outside_the_allowed_range():
+    # -2 N-m hits the target exactly but lies outside the range [-1, 0]; -1 N-m is the best allowed try.
+    assert Plot._best_Q_beta([0.0, 1.0, 2.0], [5.0, -1.0, 0.0], 0.0, -1.0, 0.0) == -1.0
+
+
+def test_optimizer_finds_the_default_wrist_cock_torque(dialogs):
+    entries = swing_entries()
+    Plot.Optimize_Q_beta(entries)
+    assert dialogs == []
+    assert entries['Q_beta'].get() == '-20.62'
+
+
+def test_optimizer_reports_a_target_out_of_range_instead_of_a_wrong_torque(dialogs):
+    # Previously the fast optimizer silently reported 0.00 N-m here.
+    entries = swing_entries(Q_beta_min='-10')
+    Plot.Optimize_Q_beta(entries)
+    title, msg = dialogs[0]
+    assert title == 'Input Error'
+    assert 'Lower the minimum wrist-cock torque (item 22)' in msg
+    assert entries['Q_beta'].get() == 'N/A'
+
+
+def test_optimizer_rejects_a_reversed_torque_range(dialogs):
+    entries = swing_entries(Q_beta_min='0', Q_beta_max='-50')
+    Plot.Optimize_Q_beta_2(entries)
+    assert dialogs == [('Input Error', 'The minimum wrist-cock torque (item 22) must not be greater than '
+                                       'the maximum (item 23).')]

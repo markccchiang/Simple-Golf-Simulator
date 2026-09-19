@@ -26,3 +26,4 @@ package = false
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+filterwarnings = ["ignore:FigureCanvasAgg is non-interactive:UserWarning"]

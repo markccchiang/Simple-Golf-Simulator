@@ -175,6 +175,10 @@ Problems are reported in a dialog instead of stopping the program.
 - *Item(s) ... are not set yet. Click "..." first* -- a step of the workflow was skipped; click the
   named button, then try again.
 - *The shoulder radius (item 3) must be greater than 0 and smaller than the arm length (item 4).*
+- *No wrist-cock torque in the allowed range reaches the target* -- no torque between items 22 and 23
+  brings the wrist-cock angle to the impact target (item 13). The message says whether to lower item 22
+  or raise item 23. Item 19 stays "N/A" until the optimization succeeds.
+- *The minimum wrist-cock torque (item 22) must not be greater than the maximum (item 23).*
 
 **Simulation Error** -- the inputs are valid numbers, but the simulation cannot produce a result:
 

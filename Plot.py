@@ -79,6 +79,9 @@ def _read_swing_params(entries):
     tau_Q_beta = ui.get_float(entries, 'tau_Q_beta')
     Q_beta_min = ui.get_float(entries, 'Q_beta_min')
     Q_beta_max = ui.get_float(entries, 'Q_beta_max')
+    if (Q_beta_min > Q_beta_max):
+        raise ui.UserFacingError("The minimum wrist-cock torque (item 22) must not be greater than "
+                                 "the maximum (item 23).")
     Method     = str(entries['Method'].get())
     return dict(
         Sex=Sex, Weight=Weight, R_S=R_S, R_A=R_A,
@@ -104,15 +107,28 @@ def _run_tracking(p, set_Q_beta):
     show_beta = result[12]
     return show_beta[len(show_beta)-1] * 180.0 / PI, result
 
-def _plot_optimization(entries, array_Q_beta, array_beta, k, tmp_set_Q_beta, Q_beta_min, Q_beta_max):
+def _best_Q_beta(array_Q_beta, array_beta, beta_final, Q_beta_min, Q_beta_max):
+    """Pick the tried wrist-cock torque (within its allowed range) whose impact wrist-cock angle is closest to the target."""
+    tried = [(-q, b) for q, b in zip(array_Q_beta, array_beta) if Q_beta_min <= -q <= Q_beta_max]
+    if not any(b <= beta_final for _, b in tried):
+        q, b = min(tried, key=lambda s: s[0])
+        raise ui.UserFacingError(
+            "No wrist-cock torque in the allowed range reaches the target. At %.2f N-m, the lowest torque tried, "
+            "the wrist-cock angle is still %.2f degree at impact, above the target of %.2f degree (item 13). "
+            "Lower the minimum wrist-cock torque (item 22)." % (q, b, beta_final))
+    if not any(b >= beta_final for _, b in tried):
+        q, b = max(tried, key=lambda s: s[0])
+        raise ui.UserFacingError(
+            "No wrist-cock torque in the allowed range reaches the target. At %.2f N-m, the highest torque tried, "
+            "the wrist-cock angle is already %.2f degree at impact, below the target of %.2f degree (item 13). "
+            "Raise the maximum wrist-cock torque (item 23)." % (q, b, beta_final))
+    return min(tried, key=lambda s: abs(s[1] - beta_final))[0]
+
+def _plot_optimization(entries, array_Q_beta, array_beta, k, beta_final, Q_beta_min, Q_beta_max):
     """Display optimization results and plot."""
-    if tmp_set_Q_beta < Q_beta_min:
-        tmp2 = Q_beta_min
-    elif tmp_set_Q_beta > Q_beta_max:
-        tmp2 = Q_beta_max
-    else:
-        tmp2 = tmp_set_Q_beta
-    _set_entry(entries['Q_beta'], ("%5.2f" % tmp2).strip())
+    _set_entry(entries['Q_beta'], 'N/A') # stays N/A if no torque in the range reaches the target
+    best_Q_beta = _best_Q_beta(array_Q_beta, array_beta, beta_final, Q_beta_min, Q_beta_max)
+    _set_entry(entries['Q_beta'], ("%5.2f" % best_Q_beta).strip())
     #
     array_dQ_beta = []
     array_Q_beta2 = []
@@ -129,6 +145,8 @@ def _plot_optimization(entries, array_Q_beta, array_beta, k, tmp_set_Q_beta, Q_b
     plt.subplot(2, 1, 1)
     plt.grid(True)
     plt.ylabel(r'$\beta$ (degree)')
+    # The refinement restarts at the second-to-last coarse point, so the last coarse point is left out
+    # to keep the coarse line from overlapping the refined one
     plt.plot(array_Q_beta[:k-1], array_beta[:k-1], 'r.-', markersize=10, linewidth=1)
     plt.plot(array_Q_beta[k:], array_beta[k:], 'r.-', markersize=10, linewidth=1)
     #
@@ -182,19 +200,15 @@ def Optimize_Q_beta(entries):
     i = 0
     tmp_beta = 180.0
     Q_beta_max2 = set_Q_beta + dQ_beta/10
-    tmp_set_Q_beta = 0.0
     while (tmp_beta > beta_final and set_Q_beta >= Q_beta_min):
-        d_Beta = abs(tmp_beta-beta_final)
         set_Q_beta = Q_beta_max2 - i*dQ_beta/100
         print('>>>>> Try wrist-cock torque:', set_Q_beta, '(N-m) <<<<<')
         tmp_beta, _ = _run_tracking(p, set_Q_beta)
         array_Q_beta.append(-1*set_Q_beta)
         array_beta.append(tmp_beta)
-        if (d_Beta > abs(tmp_beta-beta_final)):
-            tmp_set_Q_beta = set_Q_beta
         i = i+1
     #
-    _plot_optimization(entries, array_Q_beta, array_beta, k, tmp_set_Q_beta, Q_beta_min, Q_beta_max)
+    _plot_optimization(entries, array_Q_beta, array_beta, k, beta_final, Q_beta_min, Q_beta_max)
 
 @ui.validate_inputs
 def Optimize_Q_beta_2(entries):
@@ -225,9 +239,7 @@ def Optimize_Q_beta_2(entries):
     #
     tmp_beta = 180.0
     Q_beta_max1 = set_Q_beta + dQ_beta
-    tmp_set_Q_beta = 0.0
     for i in range(111):
-        d_Beta = abs(tmp_beta-beta_final)
         if (i<=100):
             set_Q_beta = Q_beta_max1 - i*dQ_beta/100
         else:
@@ -236,10 +248,8 @@ def Optimize_Q_beta_2(entries):
         tmp_beta, _ = _run_tracking(p, set_Q_beta)
         array_Q_beta.append(-1*set_Q_beta)
         array_beta.append(tmp_beta)
-        if (d_Beta > abs(tmp_beta-beta_final)):
-            tmp_set_Q_beta = set_Q_beta
     #
-    _plot_optimization(entries, array_Q_beta, array_beta, k, tmp_set_Q_beta, Q_beta_min, Q_beta_max)
+    _plot_optimization(entries, array_Q_beta, array_beta, k, beta_final, Q_beta_min, Q_beta_max)
 
 @ui.validate_inputs
 def Plot(entries):
