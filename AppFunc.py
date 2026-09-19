@@ -1,7 +1,20 @@
-from math import *
+from math import pi as PI
 import numpy as np
-import matplotlib.pyplot as plt
 import BasicFunc as func
+from collections import namedtuple
+
+#
+# Result of Tracking: one array per quantity (angles in rad). The rod arrays hold the
+# [start, end] points of each rod at every time step, interleaved, for drawing.
+#
+TrackingResult = namedtuple('TrackingResult', [
+    'O_x', 'O_y', 'arm_x', 'arm_y', 'club_x', 'club_y',
+    'arm_rod_x', 'arm_rod_y', 'club_rod_x', 'club_rod_y',
+    't', 'alpha', 'beta', 'theta', 'VC_angle', 'omega',
+    'alpha_dot', 'beta_dot', 'alpha_ddot', 'beta_ddot', 'VC',
+    'Q_alpha', 'Q_beta', 'R', 'J', 'S_A',
+    'arm1_rod_x', 'arm1_rod_y', 'arm2_rod_x', 'arm2_rod_y',
+    'arm3_rod_x', 'arm3_rod_y', 'arm4_rod_x', 'arm4_rod_y'])
 
 def _rod(start_x, start_y, end_x, end_y, n):
     #
@@ -46,12 +59,10 @@ def Tracking(Weight, R_S, R_A, \
         percentage_of_forearm  = 0.01720 # percentage of forearm
         percentage_of_hand     = 0.00575 # percentage of hand
     #
-    #rho_S  = Weight*percentage_of_upperarm/(2*R_A1)
     rho_S  = 0.0 # do not consider 1st and 2nd moments of shoulder
     rho_A1 = Weight*percentage_of_upperarm/(2*R_A1)
     rho_A2 = Weight*(percentage_of_forearm+percentage_of_hand)/(2*R_A2)
     omega_min = func.bending_arm_angle_min(R_S, R_A)
-    PI = 3.141592653589793
     if (Method == 'Solution 4'):
         h = func.h_RK4
     else:
@@ -73,7 +84,6 @@ def Tracking(Weight, R_S, R_A, \
     show_VC_y       = np.zeros(elements)
     show_VC_angle   = np.zeros(elements)
     show_VC_check   = np.zeros(elements)
-    show_VC_check1  = np.zeros(elements)
     show_arm_x      = np.zeros(elements)
     show_arm_y      = np.zeros(elements)
     show_club_x     = np.zeros(elements)
@@ -160,8 +170,6 @@ def Tracking(Weight, R_S, R_A, \
             # Solution 4: predict when the arm reaches the wrist-cock torque start angle
             if (show_alpha_dot[i] > 0.0):
                 t_on = show_t[i] + (show_theta[i] - Set_theta*PI/180.0)/show_alpha_dot[i]
-        #print t0
-        #show_Q_beta[i]  = func.func_Q_beta(show_t[i], tau_Q_beta, Q_beta, show_theta[i], show_theta[0], t0)
         show_Q_beta[i]  = func.func_Q_beta(show_t[i], tau_Q_beta, Q_beta, show_theta[i], Set_theta*PI/180.0, t0)
         #------------------------------------------------------------------
         show_arm_x[i], show_arm_y[i]   = func.func_arm_xy(show_theta[i], show_R[i])
@@ -177,8 +185,6 @@ def Tracking(Weight, R_S, R_A, \
         show_arm1_x[i], show_arm1_y[i] = func.func_general_xy(show_arm_x[i], show_arm_y[i], arm_phase_angle1, arm_length1)
         show_arm2_x[i], show_arm2_y[i] = func.func_general_xy(show_arm1_x[i], show_arm1_y[i], arm_phase_angle2, arm_length2)
         show_arm3_x[i], show_arm3_y[i] = func.func_general_xy(show_arm2_x[i], show_arm2_y[i], arm_phase_angle3, arm_length3)
-        #print (show_arm3_x[i]-show_arm_x[i])**2+(show_arm3_y[i]-show_arm_y[i])**2, \
-        #      (show_arm2_x[i]-show_arm_x[i])**2+(show_arm2_y[i]-show_arm_y[i])**2
         #------------------------------------------------------------------
         show_VC[i] = func.func_VC(show_alpha_dot[i], show_beta[i], show_beta_dot[i], show_R[i], L)
         show_VC_x[i], show_VC_y[i], show_VC_angle[i], show_VC_check[i]= \
@@ -272,7 +278,7 @@ def Tracking(Weight, R_S, R_A, \
     #
     # Return
     #
-    return show_O_x[:step], show_O_y[:step], \
+    return TrackingResult(show_O_x[:step], show_O_y[:step], \
            show_arm_x[:step], show_arm_y[:step], \
            show_club_x[:step], show_club_y[:step], \
            show_arm_rod_x[:step*2], show_arm_rod_y[:step*2], \
@@ -288,5 +294,5 @@ def Tracking(Weight, R_S, R_A, \
            show_arm1_rod_x[:step*2], show_arm1_rod_y[:step*2], \
            show_arm2_rod_x[:step*2], show_arm2_rod_y[:step*2], \
            show_arm3_rod_x[:step*2], show_arm3_rod_y[:step*2], \
-           show_arm4_rod_x[:step*2], show_arm4_rod_y[:step*2]
+           show_arm4_rod_x[:step*2], show_arm4_rod_y[:step*2])
 

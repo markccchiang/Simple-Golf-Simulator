@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from tkinter import *
 
 import matplotlib.pyplot as plt
 import AppFunc as func
@@ -58,7 +57,6 @@ def Optimize_Q_beta(Weight, R_S, R_A, \
     #
     dQ_beta = 1.0 # (N-m)
     i = 0
-    k = 0
     tmp_beta = 180.0 # (degree)
     set_Q_beta = Q_beta_max
     #
@@ -99,7 +97,6 @@ def Optimize_Q_beta(Weight, R_S, R_A, \
         array_Q_beta.append(-1*set_Q_beta)
         array_beta.append(tmp_beta)
         i = i+1
-        k = i   
     #
     # Step 2
     #
@@ -148,7 +145,6 @@ def Optimize_Q_beta(Weight, R_S, R_A, \
     tmp_beta = 180.0 # (degree)
     tmp_VC = 0.0
     Q_beta_max2 = set_Q_beta + dQ_beta/10
-    d_beta = 0.0
     tmp_set_Q_beta = 0.0 
     while (tmp_beta > beta_final and set_Q_beta >= Q_beta_min):
         d_Beta = abs(tmp_beta-beta_final)

@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-from tkinter import *
+from math import sqrt
+from tkinter import END
 
-import numpy as np
-from math import *
 import matplotlib.pyplot as plt
 import AppFunc2 as func
-import BasicFunc as base
 import UIFunc as ui
 
 LAUNCH_HINT = ('Items 40 and 41 (launch speed and elevation angle) are not set yet. '
@@ -98,40 +96,40 @@ def _Plot(entries):
     #
     plt.close('all')
     if (Figure1 == 'True'): 
-      plt.figure(9)
-      plt.clf()
-      plt.xlabel('X (m)')
-      plt.ylabel('Z (m)')
-      plt.ylim(min(show_z), max(show_z)+1.0)
-      plt.plot(show_x, show_z, 'k-', markersize=10, linewidth=5)
+        plt.figure(9)
+        plt.clf()
+        plt.xlabel('X (m)')
+        plt.ylabel('Z (m)')
+        plt.ylim(min(show_z), max(show_z)+1.0)
+        plt.plot(show_x, show_z, 'k-', markersize=10, linewidth=5)
     #--------------------------------------------------
     if (Figure2 == 'True'): 
-      plt.figure(10)
-      plt.clf()
-      plt.xlabel('X (m)')
-      plt.ylabel('Y (m)')
-      plt.ylim(min(show_y)-1.0, max(show_y)+1.0)
-      plt.plot(show_x, show_y, 'k-', markersize=10, linewidth=5)
+        plt.figure(10)
+        plt.clf()
+        plt.xlabel('X (m)')
+        plt.ylabel('Y (m)')
+        plt.ylim(min(show_y)-1.0, max(show_y)+1.0)
+        plt.plot(show_x, show_y, 'k-', markersize=10, linewidth=5)
     #--------------------------------------------------
     if (Figure3 == 'True'): 
-      plt.figure(11)
-      plt.clf()
-      plt.xlabel('Y (m)')
-      plt.xlim(min(show_y)-1.0, max(show_y)+1.0)
-      plt.ylabel('Z (m)')
-      plt.ylim(min(show_z), max(show_z)+1.0)
-      plt.plot(show_y, show_z, 'k-', markersize=10, linewidth=5)
+        plt.figure(11)
+        plt.clf()
+        plt.xlabel('Y (m)')
+        plt.xlim(min(show_y)-1.0, max(show_y)+1.0)
+        plt.ylabel('Z (m)')
+        plt.ylim(min(show_z), max(show_z)+1.0)
+        plt.plot(show_y, show_z, 'k-', markersize=10, linewidth=5)
     #--------------------------------------------------
     if (Figure4 == 'True'): 
-      fig = plt.figure(12)
-      fig.clf()
-      ax = fig.add_subplot(111, projection='3d')
-      ax.set_zlim3d(min(show_z), max(show_z)+1.0)
-      ax.set_ylim(min(show_y)-1.0, max(show_y)+1.0)
-      ax.set_xlabel('\n' + 'X (m)', fontweight='bold', fontsize=22, linespacing=0.9)
-      ax.set_ylabel('\n' + 'Y (m)', fontweight='bold', fontsize=22, linespacing=1.05)
-      ax.set_zlabel('\n' + 'Z (m)', fontweight='bold', fontsize=22, linespacing=0.5)
-      ax.plot(show_x, show_y, show_z, 'k-', markeredgecolor = 'none', linewidth=5)
+        fig = plt.figure(12)
+        fig.clf()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.set_zlim3d(min(show_z), max(show_z)+1.0)
+        ax.set_ylim(min(show_y)-1.0, max(show_y)+1.0)
+        ax.set_xlabel('\n' + 'X (m)', fontweight='bold', fontsize=22, linespacing=0.9)
+        ax.set_ylabel('\n' + 'Y (m)', fontweight='bold', fontsize=22, linespacing=1.05)
+        ax.set_zlabel('\n' + 'Z (m)', fontweight='bold', fontsize=22, linespacing=0.5)
+        ax.plot(show_x, show_y, show_z, 'k-', markeredgecolor = 'none', linewidth=5)
     #--------------------------------------------------
     plt.show()
 

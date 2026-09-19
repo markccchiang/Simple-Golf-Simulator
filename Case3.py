@@ -1,10 +1,7 @@
 #!/usr/bin/env python
-from tkinter import *
 
-import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import AppFunc as func
-import BasicFunc as base
 
 PI = 3.141592653589793
 
@@ -105,7 +102,6 @@ def Optimize_Q_beta_2(Weight, R_S, R_A, \
     i = 0
     tmp_beta = 180.0 # (degree)
     Q_beta_max1 = set_Q_beta + dQ_beta
-    d_beta = 0.0
     tmp_set_Q_beta = 0.0 
     for i in range(111):
         d_Beta = abs(tmp_beta-beta_final)

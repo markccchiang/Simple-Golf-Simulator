@@ -11,10 +11,9 @@ if sys.prefix != sys.base_prefix and 'TCL_LIBRARY' not in os.environ:
            os.environ['TCL_LIBRARY'] = tcl_dir
            break
 
-from tkinter import *
+from tkinter import BOTH, BooleanVar, Button, Canvas, GROOVE, LEFT, PhotoImage, RIGHT, StringVar, TclError, Tk, VERTICAL, X, Y
 from tkinter import ttk
 
-import matplotlib.pyplot as plt
 import Plot as pl
 import Plot2 as pl2
 

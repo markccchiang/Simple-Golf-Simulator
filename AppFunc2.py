@@ -1,6 +1,5 @@
-from math import *
+from math import cos, pi as PI, sin, sqrt
 import numpy as np
-import matplotlib.pyplot as plt
 import BasicFunc2 as func
 
 def TRACK(m, D, rho_air, C_D, C_L, \
@@ -13,7 +12,6 @@ def TRACK(m, D, rho_air, C_D, C_L, \
     # set initial conditions
     #
     #---------------------------------------------------
-    PI             = 3.141592653589793
     if (v_ball <= 0.0):
         raise RuntimeError('Launch speed must be positive.')
     theta_rad      = theta*PI/180 # (rad)

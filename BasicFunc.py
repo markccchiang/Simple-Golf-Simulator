@@ -1,4 +1,4 @@
-from math import *
+from math import acos, asin, asinh, cos, exp, pi as PI, sin, sqrt
 import cmath
 
 #
@@ -15,7 +15,6 @@ g_vertical = 9.806 # (m/sec^2)
 #
 # Other parameters
 #
-PI       = 3.141592653589793
 norm     = 270.0 # (degree)
 nrom_rad = norm*PI/180.0 # (rad)
 
@@ -96,14 +95,10 @@ def func_O_xy(t):
     return ans_O_x, ans_O_y
 
 def func_VC_xy(O_x, O_y, arm_x, arm_y, club_x, club_y, alpha_dot_rad, beta_rad, beta_dot_rad, t, R, L):
-    vec_r_x = club_x - O_x
-    vec_r_y = club_y - O_y 
     vec_r_x_bot = -1*(club_y - O_y)
     vec_r_y_bot = club_x - O_x
     vec_r_x_bot_hat = -1*(club_y - O_y)/sqrt(vec_r_x_bot**2+vec_r_y_bot**2)
     vec_r_y_bot_hat = (club_x - O_x)/sqrt(vec_r_x_bot**2+vec_r_y_bot**2)
-    vec_L_x = club_x - arm_x
-    vec_L_y = club_y - arm_y 
     vec_L_x_bot = -1*(club_y - arm_y)
     vec_L_y_bot = club_x - arm_x
     vec_L_x_bot_hat = -1*(club_y - arm_y)/sqrt(vec_L_x_bot**2+vec_L_y_bot**2)
@@ -253,14 +248,6 @@ def Ball_velocity(V_head, M_head, M_ball, COR):
     ans_Ball_velocity = V_head*(1+COR)*M_head/(M_ball+M_head)
     return ans_Ball_velocity 
 
-def inner_angle_TypeI(R_S, R_A):
-    inner_angle_TypeI_ans = acos(R_S/R_A)
-    return inner_angle_TypeI_ans
-
-def arm_length_TypeI(R_S, R_A):
-    arm_length_TypeI_ans = sqrt(R_A**2-R_S**2)
-    return arm_length_TypeI_ans
-
 def Integrate1(R_S, inner_angle_original, r_A):
     inner_angle = abs(inner_angle_original)
     Integrate1_ans = (R_S**2)*r_A + (r_A**3)/3 - R_S*(r_A**2)*cos(inner_angle)
@@ -270,25 +257,10 @@ def Integrate2(R_S, inner_angle_original, r_A):
     inner_angle = abs(inner_angle_original)
     Integrate2_part1 = (r_A-R_S*cos(inner_angle))/(R_S*sin(inner_angle))
     Integrate2_part2 = sqrt(R_S**2+r_A**2-2*R_S*r_A*cos(inner_angle))
-    #Integrate2_part3 = (R_S**2)*(sin(inner_angle)**2)*np.arcsinh(Integrate2_part1)
     Integrate2_part3 = (R_S**2)*(sin(inner_angle)**2)*asinh(Integrate2_part1)
     Integrate2_part4 = (r_A-R_S*cos(inner_angle))*Integrate2_part2
     Integrate2_ans = Integrate2_part3 + Integrate2_part4
     return Integrate2_ans
-
-def J_TypeI(R_S, R_A, rho_S, rho_A1, rho_A2, inner_angle):
-    J_TypeI_part1 = 2*rho_A1*Integrate1(R_S, inner_angle, R_A/2) - 0.0
-    J_TypeI_part2 = 2*rho_A2*Integrate1(R_S, inner_angle, R_A) - 2*rho_A2*Integrate1(R_S, inner_angle, R_A/2)
-    J_TypeI_part3 = 2*rho_S*(R_S**3)/3
-    J_TypeI_ans = J_TypeI_part1 + J_TypeI_part2 + J_TypeI_part3 
-    return J_TypeI_ans
-
-def S_A_TypeI(R_S, R_A, rho_S, rho_A1, rho_A2, inner_angle):
-    S_A_TypeI_part1 = rho_A1*(Integrate2(R_S, inner_angle, R_A/2)-Integrate2(R_S, inner_angle, 0.0))
-    S_A_TypeI_part2 = rho_A2*(Integrate2(R_S, inner_angle, R_A)-Integrate2(R_S, inner_angle, R_A/2))
-    S_A_TypeI_part3 = rho_S*R_S**2 - 0.0
-    S_A_TypeI_ans = S_A_TypeI_part1 + S_A_TypeI_part2 + S_A_TypeI_part3
-    return S_A_TypeI_ans
 
 def bending_arm_para(R_S, R_A, bending_angle):
     R_Ap = R_A*sin(bending_angle/2)
@@ -320,6 +292,10 @@ def bending_arm_angle(theta_ini, alpha, omega_ini):
     else:
       return PI
 
+#
+# Moments of the arm about the shoulder axis. They also cover Type I (straight arm):
+# the arm bending angle omega is then pi.
+#
 def J_TypeII(R_S, R_A, rho_S, rho_A1, rho_A2, R_eff, inner_angle1, inner_angle2, inner_angle3):
     J_TypeII_part1 = rho_A1*Integrate1(R_S, inner_angle1, R_A/2) - 0.0
     J_TypeII_part2 = rho_A2*Integrate1(R_S, inner_angle1, R_A) - rho_A2*Integrate1(R_S, inner_angle1, R_A/2)

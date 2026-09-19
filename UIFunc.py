@@ -3,11 +3,29 @@ from tkinter import messagebox
 class UserFacingError(Exception):
     """An error whose message is written for the user and shown as-is."""
 
+def _window(entries):
+    """The window holding the entry widgets, or None (e.g. with test doubles)."""
+    for widget in entries.values():
+        if hasattr(widget, 'winfo_toplevel'):
+            return widget.winfo_toplevel()
+    return None
+
 def validate_inputs(func_to_wrap):
-    """Wrap a UI callback so any failure is shown in an error dialog instead of crashing."""
+    """Wrap a UI callback so any failure is shown in an error dialog instead of crashing.
+
+    Shows a busy cursor while the callback runs, since simulations block the window.
+    """
     def wrapper(entries):
+        window = _window(entries)
+        if window is not None:
+            window.config(cursor='watch')
+            window.update_idletasks()
         try:
-            return func_to_wrap(entries)
+            try:
+                return func_to_wrap(entries)
+            finally:
+                if window is not None:
+                    window.config(cursor='') # restore before any error dialog appears
         except UserFacingError as e:
             messagebox.showerror("Input Error", str(e))
         except RuntimeError as e:

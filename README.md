@@ -78,6 +78,7 @@ X-Z (elevation), X-Y (horizontal), Y-Z (lateral), and 3D flight path.
 
 ```bash
 uv run pytest
+uv run ruff check .    # lint
 ```
 
 The tests in `tests/` run the swing and ball-trajectory simulations headless and check the GUI's error messages without opening a window.

@@ -1,12 +1,7 @@
 #!/usr/bin/env python
-from tkinter import *
 
-import numpy as np
-from math import *
 import matplotlib.pyplot as plt
 import AppFunc2 as func
-import BasicFunc as base
-from matplotlib import cm
 
 #
 # Set initial values

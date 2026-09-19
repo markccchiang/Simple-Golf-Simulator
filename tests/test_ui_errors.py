@@ -134,3 +134,52 @@ def test_optimizer_rejects_a_reversed_torque_range(dialogs):
     Plot.Optimize_Q_beta_2(entries)
     assert dialogs == [('Input Error', 'The minimum wrist-cock torque (item 22) must not be greater than '
                                        'the maximum (item 23).')]
+
+
+# --- Busy cursor ---------------------------------------------------------------
+
+class FakeWindow:
+    def __init__(self):
+        self.cursor = ''
+        self.cursor_during_dialog = None
+
+    def config(self, cursor):
+        self.cursor = cursor
+
+    def update_idletasks(self):
+        pass
+
+
+class FakeWidget(FakeEntry):
+    def __init__(self, value, window):
+        super().__init__(value)
+        self.window = window
+
+    def winfo_toplevel(self):
+        return self.window
+
+
+def test_busy_cursor_is_shown_while_a_callback_runs():
+    window = FakeWindow()
+    seen = []
+
+    @UIFunc.validate_inputs
+    def callback(entries):
+        seen.append(window.cursor)
+
+    callback({'x': FakeWidget('1', window)})
+    assert seen == ['watch']
+    assert window.cursor == ''
+
+
+def test_busy_cursor_is_cleared_before_an_error_dialog(monkeypatch):
+    window = FakeWindow()
+    monkeypatch.setattr(UIFunc.messagebox, 'showerror',
+                        lambda title, msg: setattr(window, 'cursor_during_dialog', window.cursor))
+
+    @UIFunc.validate_inputs
+    def callback(entries):
+        raise UIFunc.UserFacingError('bad input')
+
+    callback({'x': FakeWidget('1', window)})
+    assert window.cursor_during_dialog == ''

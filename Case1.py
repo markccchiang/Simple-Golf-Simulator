@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-from tkinter import *
 
 import matplotlib.pyplot as plt
 import AppFunc as func
-import BasicFunc as base
 
 PI = 3.141592653589793
 
