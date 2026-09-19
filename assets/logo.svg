@@ -5,6 +5,9 @@
       <stop offset="0" stop-color="#0e4a36"/>
       <stop offset="1" stop-color="#082c20"/>
     </linearGradient>
+    <clipPath id="below-shoulders">
+      <rect x="0" y="192" width="512" height="320"/>
+    </clipPath>
   </defs>
 
   <!-- Badge -->
@@ -14,34 +17,42 @@
   <!-- Ground -->
   <line x1="56" y1="372" x2="456" y2="372" stroke="#7fd1a8" stroke-width="6" stroke-linecap="round" opacity="0.55"/>
 
-  <!-- Clubhead swing arc (radius = arm + club about the hub) -->
-  <path d="M 29 285 A 210 210 0 0 0 190 360" fill="none" stroke="#7fd1a8" stroke-width="5"
-        stroke-dasharray="2 14" stroke-linecap="round" opacity="0.8"/>
-
-  <!-- Earlier pose: wrist cocked -->
-  <g stroke="#f4f1e8" stroke-width="10" stroke-linecap="round" opacity="0.3">
-    <line x1="190" y1="150" x2="108" y2="207"/>
-    <line x1="108" y1="207" x2="45" y2="117"/>
-  </g>
-
   <!-- Ball flight: one dot per time step, steeper descent from drag -->
-  <path d="M 212 360 C 272 150 372 40 432 364" fill="none" stroke="#f5c451" stroke-width="10"
+  <path d="M 212 358 C 272 150 372 40 432 364" fill="none" stroke="#f5c451" stroke-width="10"
         stroke-dasharray="0 22" stroke-linecap="round"/>
 
   <!-- Flag -->
   <line x1="436" y1="372" x2="436" y2="290" stroke="#f4f1e8" stroke-width="5" stroke-linecap="round"/>
   <path d="M 438 290 L 472 303 L 438 316 Z" fill="#e8553d"/>
 
-  <!-- Impact pose: hub -> arm -> club -->
-  <g stroke="#f4f1e8" stroke-linecap="round">
-    <line x1="190" y1="150" x2="190" y2="250" stroke-width="14"/>
-    <line x1="190" y1="250" x2="190" y2="352" stroke-width="10"/>
-    <line x1="182" y1="360" x2="202" y2="360" stroke-width="16"/>
+  <!-- Clubhead swing arc (radius = arm + club about the hub) -->
+  <path d="M 34 292 A 193 193 0 0 0 110 347" fill="none" stroke="#7fd1a8" stroke-width="5"
+        stroke-dasharray="2 14" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- Golfer at impact (face-on, target to the right) -->
+  <g fill="none" stroke="#f4f1e8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Legs: trail knee kicking in, lead leg firm -->
+    <polyline points="184,244 186,302 152,360" stroke-width="22"/>
+    <polyline points="204,244 222,300 230,360" stroke-width="22"/>
+    <!-- Torso: trail shoulder lower -->
+    <polygon points="152,172 210,158 212,244 176,246" fill="#f4f1e8" stroke-width="16"/>
   </g>
-  <circle cx="190" cy="150" r="17" fill="#082c20" stroke="#f4f1e8" stroke-width="8"/>
-  <circle cx="190" cy="250" r="11" fill="#f4f1e8"/>
+  <circle cx="176" cy="126" r="21" fill="#f4f1e8"/>
+
+  <!-- Arms and club, outlined in the background color below the shoulders -->
+  <g clip-path="url(#below-shoulders)" fill="none" stroke="#0b3a2b" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="158,178 180,226 202,264" stroke-width="25"/>
+    <line x1="208" y1="166" x2="204" y2="264" stroke-width="25"/>
+    <line x1="203" y1="266" x2="192" y2="350" stroke-width="18"/>
+  </g>
+  <g fill="none" stroke="#f4f1e8" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="158,178 180,226 202,264" stroke-width="17"/>
+    <line x1="208" y1="166" x2="204" y2="264" stroke-width="17"/>
+    <line x1="203" y1="266" x2="192" y2="350" stroke-width="8"/>
+    <line x1="182" y1="357" x2="198" y2="359" stroke-width="13"/>
+  </g>
 
   <!-- Ball -->
-  <circle cx="220" cy="360" r="12" fill="#ffffff"/>
+  <circle cx="213" cy="359" r="11" fill="#ffffff" stroke="#0b3a2b" stroke-width="4"/>
   </g>
 </svg>
