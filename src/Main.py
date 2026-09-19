@@ -11,11 +11,488 @@ if sys.prefix != sys.base_prefix and 'TCL_LIBRARY' not in os.environ:
            os.environ['TCL_LIBRARY'] = tcl_dir
            break
 
-from tkinter import BOTH, BooleanVar, Button, Canvas, GROOVE, LEFT, PhotoImage, RIGHT, StringVar, TclError, Tk, VERTICAL, X, Y
+import tkinter.font as tkfont
+from tkinter import BooleanVar, Canvas, PhotoImage, StringVar, TclError, Tk
 from tkinter import ttk
 
+import matplotlib.pyplot as plt
 import Plot as pl
 import Plot2 as pl2
+import UIFunc as ui
+import Workflow as wf
+
+#
+# Input fields: (key, item number, label, default, first step that uses it (1-4), tab, group).
+# Keys are the ones Plot.py and Plot2.py read; item numbers match the user's guide.
+# The 'Advanced' group of each tab is folded away until opened.
+#
+TABS = (('golfer', 'Golfer & club'), ('swing', 'Swing'), ('ball', 'Ball & conditions'))
+
+FIELDS = (
+    ('Gender',        1,  'Gender',                                  'Male',       1, 'golfer', 'Golfer'),
+    ('Weight',        2,  'Weight (kg)',                             '70.0',       1, 'golfer', 'Golfer'),
+    ('R_S',           3,  'Shoulder radius (m)',                     '0.17',       1, 'golfer', 'Golfer'),
+    ('R_A',           4,  'Arm length (m)',                          '0.6',        1, 'golfer', 'Golfer'),
+    ('M_C_head',      5,  'Head mass (kg)',                          '0.2',        1, 'golfer', 'Club'),
+    ('M_C_shaft',     6,  'Shaft mass (kg)',                         '0.1',        1, 'golfer', 'Club'),
+    ('L_C_head',      7,  'Head length (m)',                         '0.1',        1, 'golfer', 'Club'),
+    ('L_C_shaft',     8,  'Shaft length (m)',                        '1.0',        1, 'golfer', 'Club'),
+
+    ('phi',           9,  'Swing plane angle (deg)',                 '60',         1, 'swing',  'Swing'),
+    ('theta',         10, 'Initial arm angle (deg)',                 '135',        1, 'swing',  'Swing'),
+    ('beta',          12, 'Initial wrist-cock angle (deg)',          '120',        1, 'swing',  'Swing'),
+    ('Type',          16, 'Swing type',                              'Type I',     1, 'swing',  'Swing'),
+    ('Method',        24, 'Solver',                                  'Solution 4', 1, 'swing',  'Swing'),
+    ('Q_alpha',       17, 'Arm torque (N-m)',                        '100',        1, 'swing',  'Torques'),
+    ('Q_beta',        19, 'Wrist-cock torque (N-m)',                 '',           2, 'swing',  'Torques'),
+    ('set_theta',     20, 'Wrist torque starts at arm angle (deg)',  '135',        1, 'swing',  'Torques'),
+    ('beta_final',    13, 'Target wrist-cock angle at impact (deg)', '0',          1, 'swing',  'Wrist-torque search'),
+    ('Q_beta_min',    22, 'Lowest torque to try (N-m)',              '-50',        1, 'swing',  'Wrist-torque search'),
+    ('Q_beta_max',    23, 'Highest torque to try (N-m)',             '0',          1, 'swing',  'Wrist-torque search'),
+    ('Optimizer',     '', 'Search',                                  'Fast',       1, 'swing',  'Wrist-torque search'),
+    ('theta_final',   11, 'Impact arm angle (deg)',                  '0',          1, 'swing',  'Advanced'),
+    ('a_x',           14, 'Horizontal hand accel. (m/s²)',           '0',          1, 'swing',  'Advanced'),
+    ('a_y',           15, 'Vertical hand accel. (m/s²)',             '0',          1, 'swing',  'Advanced'),
+    ('tau_Q_alpha',   18, 'Arm torque rise time (s)',                '0.01',       1, 'swing',  'Advanced'),
+    ('tau_Q_beta',    21, 'Wrist torque rise time (s)',              '0.01',       1, 'swing',  'Advanced'),
+
+    ('ball_mass',     30, 'Mass (kg)',                               '0.0458',     3, 'ball',   'Golf ball'),
+    ('ball_diameter', 31, 'Diameter (m)',                            '0.0428',     4, 'ball',   'Golf ball'),
+    ('COR',           32, 'Coefficient of restitution',              '0.775',      3, 'ball',   'Golf ball'),
+    ('C_D',           33, 'Drag coefficient',                        '0.285',      4, 'ball',   'Golf ball'),
+    ('C_L',           34, 'Lift coefficient',                        '0.1',        4, 'ball',   'Golf ball'),
+    ('clubhead_loft', 39, 'Clubhead loft (deg)',                     '15',         3, 'ball',   'Launch'),
+    ('ball_U',        40, 'Launch speed (m/s)',                      '',           4, 'ball',   'Launch'),
+    ('ball_theta',    41, 'Launch elevation (deg)',                  '',           4, 'ball',   'Launch'),
+    ('ball_phi',      42, 'Launch direction (deg)',                  '0',          4, 'ball',   'Launch'),
+    ('ball_w_theta',  43, 'Spin elevation (deg)',                    '0',          4, 'ball',   'Launch'),
+    ('ball_w_phi',    44, 'Spin direction (deg)',                    '-90',        4, 'ball',   'Launch'),
+    ('v_wind',        36, 'Wind speed (m/s)',                        '0',          4, 'ball',   'Wind'),
+    ('wind_theta',    37, 'Wind elevation (deg)',                    '0',          4, 'ball',   'Wind'),
+    ('wind_phi',      38, 'Wind direction (deg)',                    '0',          4, 'ball',   'Wind'),
+    ('rho_air',       35, 'Air density (kg/m³)',                     '1.2',        4, 'ball',   'Advanced'),
+    ('Altitude',      45, 'Landing height vs. tee (m)',              '0',          4, 'ball',   'Advanced'),
+)
+
+SELECTS = {
+    'Gender':    ('Male', 'Female', 'Average'),
+    'Type':      ('Type I', 'Type II'),
+    'Method':    ('Solution 4', 'Solution 1', 'Solution 2', 'Solution 3'),
+    'Optimizer': ('Fast', 'Complete'),
+}
+
+HELP = {
+    'Method':    'Solution 4 is the accurate RK4 solver; 1–3 are the report’s original methods.',
+    'Q_beta':    'Filled by step 1, or type a torque to skip the optimizer.',
+    'Optimizer': 'Complete scans a wider range of torques (slower).',
+    'ball_U':    'Filled by step 3, or type both launch values to study the ball flight on its own.',
+}
+
+ADVANCED_HINT = {'swing': 'rise times, accelerations, impact arm angle', 'ball': 'air density, landing height'}
+
+#
+# Plots, shown in their own windows: (key, label, on by default)
+#
+SWING_PLOTS = (('Fig1', 'Swing tracks', True), ('Fig2', 'Angles', False), ('Fig3', 'Angular velocities', False),
+               ('Fig4', 'Angular accelerations', False), ('Fig5', 'Clubhead speed', False), ('Fig6', 'Torques', False),
+               ('Fig8', 'Arm length', False), ('Fig7', '1st and 2nd moments', False), ('Fig0', 'Wrist-torque search', False))
+BALL_PLOTS = (('Figure1', 'Side view (X-Z)', True), ('Figure2', 'Top view (X-Y)', False),
+              ('Figure3', 'Rear view (Y-Z)', False), ('Figure4', '3D', False))
+
+RESULT_KEYS = ('VC', 'error_VC', 'VC_angle', 'error_VC_angle', 'X_final', 'Y_final', 'Distance', 'Apex', 'Flight_time')
+
+STAGE = {f[0]: f[4] for f in FIELDS}
+NUMERIC_KEYS = [f[0] for f in FIELDS if f[0] not in SELECTS]
+
+def palette(root):
+    """Text colors readable on the window background (light or dark appearance)."""
+    try:
+        r, g, b = root.winfo_rgb('systemWindowBackgroundColor')
+    except TclError:
+        r, g, b = root.winfo_rgb(ttk.Style().lookup('TFrame', 'background') or 'white')
+    dark = (0.299*r + 0.587*g + 0.114*b) / 65535 < 0.5
+    if dark:
+        return dict(muted='#a3a8b0', ok='#6fcf97', stale='#f2c14e', error='#ff8a78', manual='#8fb4ff')
+    return dict(muted='#5f6368', ok='#1d7a4f', stale='#8a5a00', error='#c0392b', manual='#2456a8')
+
+class ScrollFrame(ttk.Frame):
+    """A frame whose content scrolls vertically when it is taller than the window."""
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.canvas = Canvas(self, highlightthickness=0, borderwidth=0)
+        bar = ttk.Scrollbar(self, orient='vertical', command=self.canvas.yview)
+        self.inner = ttk.Frame(self.canvas, padding=(12, 4, 16, 12))
+        window = self.canvas.create_window((0, 0), window=self.inner, anchor='nw')
+        self.canvas.configure(yscrollcommand=bar.set)
+        self.inner.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox('all')))
+        self.canvas.bind('<Configure>', lambda e: self.canvas.itemconfigure(window, width=e.width))
+        self.canvas.pack(side='left', fill='both', expand=True)
+        bar.pack(side='right', fill='y')
+        self.bind('<Enter>', lambda e: self._wheel(True))
+        self.bind('<Leave>', lambda e: self._wheel(False))
+
+    def _wheel(self, on):
+        if not on:
+            for seq in ('<MouseWheel>', '<Button-4>', '<Button-5>'):
+                self.unbind_all(seq)
+            return
+        def scroll(event):
+            if getattr(event, 'num', None) in (4, 5):
+                step = -1 if event.num == 4 else 1
+            elif sys.platform == 'darwin':
+                step = -event.delta
+            else:
+                step = -(event.delta // 120)
+            if self.inner.winfo_height() > self.canvas.winfo_height():
+                self.canvas.yview_scroll(step, 'units')
+        self.bind_all('<MouseWheel>', scroll)
+        self.bind_all('<Button-4>', scroll)
+        self.bind_all('<Button-5>', scroll)
+
+class Panel:
+    def __init__(self, root):
+        self.root = root
+        self.flow = wf.Workflow()
+        self.entries = {}     # what Plot.py / Plot2.py read: Entry widgets, StringVars, BooleanVars, results
+        self.vars = {}        # key -> StringVar of each input
+        self.rows = {}        # key -> dict of that field's extra widgets (error, badge, reset)
+        self.tab_of = {}      # key -> tab frame
+        self.busy = False     # a step is writing into the fields: not a user edit
+        self.running = False
+        self.active = None    # step running now
+        self.message = None   # (text, kind) shown instead of the usual status line
+        self.colors = palette(root)
+        base = tkfont.nametofont('TkDefaultFont')
+        self.small = base.copy()
+        self.small.configure(size=max(base.cget('size') - 1, 9))
+        self.bold = base.copy()
+        self.bold.configure(weight='bold')
+        self.big = base.copy()
+        self.big.configure(size=base.cget('size') + 8)
+
+        root.columnconfigure(1, weight=1)
+        root.rowconfigure(1, weight=1)
+        self.build_header()
+        self.build_inputs()
+        self.build_right()
+        self.refresh()
+
+    # --- Layout ---------------------------------------------------------------------------------
+
+    def build_header(self):
+        bar = ttk.Frame(self.root, padding=(16, 10))
+        bar.grid(row=0, column=0, columnspan=2, sticky='ew')
+        bar.columnconfigure(2, weight=1)
+        try:
+            self.logo = PhotoImage(file=os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                     os.pardir, 'assets', 'logo.png')).subsample(14)
+            ttk.Label(bar, image=self.logo).grid(row=0, column=0, rowspan=2, padx=(0, 10))
+        except TclError:
+            pass
+        ttk.Label(bar, text='Simple Golf Simulator', font=self.bold).grid(row=0, column=1, sticky='w')
+        ttk.Label(bar, text='Swing mechanics → ball flight', font=self.small,
+                  foreground=self.colors['muted']).grid(row=1, column=1, sticky='w')
+        ttk.Button(bar, text='Reset to defaults', command=self.reset).grid(row=0, column=3, rowspan=2)
+        ttk.Separator(self.root).grid(row=0, column=0, columnspan=2, sticky='sew')
+
+    def build_inputs(self):
+        self.notebook = ttk.Notebook(self.root)
+        self.notebook.grid(row=1, column=0, sticky='nsew', padx=(12, 6), pady=12)
+        self.tabs = {}
+        for tab_key, title in TABS:
+            frame = ScrollFrame(self.notebook)
+            self.notebook.add(frame, text=title)
+            self.tabs[tab_key] = frame
+            grid = frame.inner
+            grid.columnconfigure(1, weight=1)
+            row = 0
+            group = None
+            self.advanced_rows = getattr(self, 'advanced_rows', {})
+            for key, num, label, default, stage, tab, grp in FIELDS:
+                if tab != tab_key:
+                    continue
+                if grp != group:
+                    group = grp
+                    row = self.add_group_title(grid, row, tab_key, grp)
+                row = self.add_field(grid, row, key, num, label, default, tab_key, grp == 'Advanced')
+            for widget in self.advanced_rows.get(tab_key, []):
+                widget.grid_remove()
+
+    def add_group_title(self, grid, row, tab_key, title):
+        if title != 'Advanced':
+            ttk.Label(grid, text=title.upper(), font=self.small, foreground=self.colors['muted']).grid(
+                row=row, column=0, columnspan=5, sticky='w', pady=(14, 2))
+            return row + 1
+        self.advanced_open = getattr(self, 'advanced_open', {})
+        self.advanced_open[tab_key] = False
+        button = ttk.Button(grid, style='Toolbutton', command=lambda: self.toggle_advanced(tab_key))
+        button.grid(row=row, column=0, columnspan=5, sticky='w', pady=(14, 2))
+        self.advanced_buttons = getattr(self, 'advanced_buttons', {})
+        self.advanced_buttons[tab_key] = button
+        self.set_advanced_text(tab_key)
+        return row + 1
+
+    def set_advanced_text(self, tab_key):
+        opened = self.advanced_open[tab_key]
+        self.advanced_buttons[tab_key].configure(
+            text=('▾ Advanced' if opened else '▸ Advanced  (%s)' % ADVANCED_HINT[tab_key]))
+
+    def toggle_advanced(self, tab_key):
+        self.advanced_open[tab_key] = not self.advanced_open[tab_key]
+        for widget in self.advanced_rows[tab_key]:
+            if self.advanced_open[tab_key]:
+                widget.grid()
+            else:
+                widget.grid_remove()
+        self.set_advanced_text(tab_key)
+        self.refresh()
+
+    def add_field(self, grid, row, key, num, label, default, tab_key, advanced):
+        placed = []
+        def place(widget, **kw):
+            widget.grid(**kw)
+            placed.append(widget)
+        place(ttk.Label(grid, text=str(num), font=self.small, foreground=self.colors['muted'], width=3, anchor='e'),
+              row=row, column=0, sticky='e', padx=(0, 8))
+        place(ttk.Label(grid, text=label), row=row, column=1, sticky='w', pady=3)
+        var = StringVar(self.root, value=default)
+        self.vars[key] = var
+        if key in SELECTS:
+            widget = ttk.Combobox(grid, textvariable=var, values=SELECTS[key], state='readonly', width=11)
+            self.entries[key] = var
+        else:
+            widget = ttk.Entry(grid, textvariable=var, width=12, justify='right')
+            widget.label = '%s. %s' % (num, label) # named in input error messages
+            self.entries[key] = widget
+        place(widget, row=row, column=2, sticky='e', pady=3)
+        extra = {'widget': widget}
+        if key in wf.AUTO_FIELDS:
+            badge = ttk.Label(grid, font=self.small, width=7, anchor='center')
+            place(badge, row=row, column=3, padx=(6, 0))
+            reset = ttk.Button(grid, text='↺', width=2, command=lambda: self.use_computed(key))
+            place(reset, row=row, column=4, padx=(4, 0))
+            extra.update(badge=badge, reset=reset)
+        row += 1
+        if key in HELP:
+            place(ttk.Label(grid, text=HELP[key], font=self.small, foreground=self.colors['muted'], wraplength=330),
+                  row=row, column=1, columnspan=4, sticky='w', pady=(0, 4))
+            row += 1
+        error = ttk.Label(grid, font=self.small, foreground=self.colors['error'], wraplength=330)
+        error.grid(row=row, column=1, columnspan=4, sticky='w', pady=(0, 4))
+        error.grid_remove()
+        extra['error'] = error
+        row += 1
+        if advanced:
+            self.advanced_rows.setdefault(tab_key, []).extend(placed)
+        extra['advanced'] = advanced
+        self.rows[key] = extra
+        self.tab_of[key] = self.tabs[tab_key]
+        var.trace_add('write', lambda *args: self.on_edit(key))
+        return row
+
+    def build_right(self):
+        right = ttk.Frame(self.root, padding=(6, 12, 16, 12))
+        right.grid(row=1, column=1, sticky='nsew')
+        right.columnconfigure(0, weight=1)
+
+        # Steps
+        steps = ttk.LabelFrame(right, text='Run', padding=12)
+        steps.grid(row=0, column=0, sticky='ew')
+        for c in range(1, 5):
+            steps.columnconfigure(c, weight=1, uniform='step')
+        self.run_button = ttk.Button(steps, text='Run all steps', default='active', command=lambda: self.run(3))
+        self.run_button.grid(row=0, column=0, rowspan=2, sticky='ns', padx=(0, 12))
+        self.root.bind('<Return>', lambda e: self.run(3))
+        self.step_buttons, self.step_labels = [], []
+        for i, name in enumerate(wf.STEP_LABELS):
+            button = ttk.Button(steps, text='%d  %s' % (i + 1, name), command=lambda i=i: self.run(i))
+            button.grid(row=0, column=i + 1, sticky='ew', padx=3)
+            status = ttk.Label(steps, font=self.small, anchor='center')
+            status.grid(row=1, column=i + 1, sticky='ew', padx=3, pady=(4, 0))
+            self.step_buttons.append(button)
+            self.step_labels.append(status)
+        self.status = ttk.Label(steps, wraplength=640)
+        self.status.grid(row=2, column=0, columnspan=5, sticky='w', pady=(10, 0))
+
+        # Results
+        results = ttk.Frame(right)
+        results.grid(row=1, column=0, sticky='ew', pady=(12, 0))
+        self.cards = []
+        for i in range(6):
+            results.columnconfigure(i % 3, weight=1, uniform='card')
+            box = ttk.LabelFrame(results, padding=(10, 4, 10, 8))
+            box.grid(row=i // 3, column=i % 3, sticky='nsew', padx=(0 if i % 3 == 0 else 6, 0), pady=(0, 6))
+            box.columnconfigure(0, weight=1)
+            value = ttk.Label(box, font=self.big)
+            value.grid(row=0, column=0, sticky='w')
+            tag = ttk.Label(box, font=self.small, foreground=self.colors['stale'])
+            tag.grid(row=0, column=1, sticky='ne')
+            detail = ttk.Label(box, font=self.small, foreground=self.colors['muted'])
+            detail.grid(row=1, column=0, columnspan=2, sticky='w')
+            self.cards.append((box, value, detail, tag))
+        for key in RESULT_KEYS:
+            self.entries[key] = ui.ResultField(StringVar(self.root, value='N/A'))
+            self.entries[key].var.trace_add('write', lambda *args: self.refresh())
+
+        # Plots
+        plots = ttk.LabelFrame(right, text='Plots to show (each opens in its own window)', padding=12)
+        plots.grid(row=2, column=0, sticky='ew', pady=(6, 0))
+        for column, (title, items) in enumerate((('Swing', SWING_PLOTS), ('Ball flight', BALL_PLOTS))):
+            plots.columnconfigure(column, weight=1)
+            box = ttk.Frame(plots)
+            box.grid(row=0, column=column, sticky='nw')
+            ttk.Label(box, text=title.upper(), font=self.small, foreground=self.colors['muted']).grid(
+                row=0, column=0, columnspan=2, sticky='w', pady=(0, 4))
+            for n, (key, label, on) in enumerate(items):
+                var = BooleanVar(self.root, value=on)
+                self.entries[key] = var
+                ttk.Checkbutton(box, text=label, variable=var).grid(row=1 + n // 2, column=n % 2, sticky='w', padx=(0, 16), pady=1)
+
+    # --- Behavior -------------------------------------------------------------------------------
+
+    def on_edit(self, key):
+        if self.busy:
+            return
+        self.message = None
+        stage = STAGE[key]
+        if key in wf.AUTO_FIELDS:
+            if self.vars[key].get().strip() == '':
+                self.flow.use_computed(key, stage) # cleared: let its step compute it again
+            else:
+                self.flow.auto_field_edited(key, stage)
+        else:
+            self.flow.input_changed(stage)
+        self.refresh()
+
+    def use_computed(self, key):
+        value = self.flow.use_computed(key, STAGE[key])
+        self.busy = True
+        try:
+            self.vars[key].set(value)
+        finally:
+            self.busy = False
+        self.refresh()
+
+    def errors(self):
+        return wf.check_inputs({k: v.get() for k, v in self.vars.items()}, NUMERIC_KEYS)
+
+    def run(self, upto):
+        if self.running:
+            return
+        errors = self.errors()
+        if errors:
+            first = next(f[0] for f in FIELDS if f[0] in errors)
+            self.notebook.select(self.tab_of[first])
+            if self.rows[first]['advanced'] and not self.advanced_open[self.tab_key(first)]:
+                self.toggle_advanced(self.tab_key(first))
+            self.rows[first]['widget'].focus_set()
+            self.message = ('Fix the highlighted input first.', 'error')
+            self.refresh()
+            return
+        self.running = True
+        self.message = None
+        optimize = pl.Optimize_Q_beta_2 if self.vars['Optimizer'].get() == 'Complete' else pl.Optimize_Q_beta
+        steps = (optimize, pl.Plot, pl.get_ball_velocity, pl2.Plot)
+        try:
+            with ui.batch_plots():
+                for i in self.flow.plan(upto):
+                    if self.flow.skips(i):
+                        self.flow.skipped(i)
+                        continue
+                    self.active = i
+                    self.refresh()
+                    self.root.update_idletasks()
+                    kept = {k: self.vars[k].get() for k in self.flow.manual}
+                    self.busy = True
+                    try:
+                        ok = steps[i](self.entries)
+                        outputs = {k: self.vars[k].get() for k, s in wf.AUTO_FIELDS.items() if s == i}
+                        for k, v in kept.items(): # a step never overwrites a value typed by hand
+                            self.vars[k].set(v)
+                    finally:
+                        self.busy = False
+                    if not ok:
+                        self.message = ('Step %d (%s) stopped; see the error message. Later steps did not run.'
+                                        % (i + 1, wf.STEP_LABELS[i]), 'error')
+                        break
+                    self.flow.finished(i, outputs)
+        finally:
+            self.active = None
+            self.running = False
+            self.refresh()
+
+    def tab_key(self, key):
+        return next(f[5] for f in FIELDS if f[0] == key)
+
+    def reset(self):
+        plt.close('all')
+        self.busy = True
+        try:
+            for key, num, label, default, *rest in FIELDS:
+                self.vars[key].set(default)
+            for key in RESULT_KEYS:
+                self.entries[key].var.set('N/A')
+            for key, label, on in SWING_PLOTS + BALL_PLOTS:
+                self.entries[key].set(on)
+        finally:
+            self.busy = False
+        self.flow.reset()
+        self.message = None
+        self.refresh()
+
+    # --- Display --------------------------------------------------------------------------------
+
+    def refresh(self):
+        c = self.colors
+        errors = self.errors()
+        for key, extra in self.rows.items():
+            if key in errors and (not extra['advanced'] or self.advanced_open[self.tab_key(key)]):
+                extra['error'].configure(text=errors[key])
+                extra['error'].grid()
+            else:
+                extra['error'].grid_remove()
+        for tab_key, title in TABS:
+            count = sum(1 for k in errors if self.tab_key(k) == tab_key)
+            self.notebook.tab(self.tabs[tab_key], text=title + ('  (%d to fix)' % count if count else ''))
+
+        # Steps
+        texts = {wf.IDLE: ('Not run', c['muted']), wf.DONE: ('✓ Up to date', c['ok']),
+                 wf.STALE: ('Stale: inputs changed', c['stale']), wf.MANUAL: ('Skipped: typed by hand', c['manual'])}
+        for i, label in enumerate(self.step_labels):
+            text, color = ('Running…', c['ok']) if i == self.active else texts[self.flow.states[i]]
+            label.configure(text=text, foreground=color)
+        state = ['disabled'] if self.running else ['!disabled']
+        for button in self.step_buttons + [self.run_button]:
+            button.state(state)
+        if self.active is not None:
+            text, kind = 'Step %d of 4 · %s' % (self.active + 1, wf.STEP_ACTIVITY[self.active]), 'ok'
+        elif self.message:
+            text, kind = self.message
+        elif errors:
+            text, kind = '%d input%s to fix before running.' % (len(errors), '' if len(errors) == 1 else 's'), 'error'
+        else:
+            text, kind = self.flow.status()
+        self.status.configure(text=text, foreground=c.get(kind, c['muted']))
+
+        # In-between values: auto, typed by hand, or stale
+        for key, step in wf.AUTO_FIELDS.items():
+            extra = self.rows[key]
+            if key in self.flow.manual:
+                extra['badge'].configure(text='manual', foreground=c['manual'])
+                extra['reset'].grid()
+            else:
+                stale = self.flow.states[step] == wf.STALE and self.vars[key].get().strip() not in ('', 'N/A')
+                extra['badge'].configure(text='stale' if stale else 'auto', foreground=c['stale'] if stale else c['ok'])
+                extra['reset'].grid_remove()
+
+        # Results
+        values = {k: self.entries[k].get() for k in RESULT_KEYS}
+        values.update({k: self.vars[k].get() for k in wf.AUTO_FIELDS})
+        for (box, value, detail, tag), (label, text, sub, kind) in zip(self.cards, wf.result_cards(values, self.flow)):
+            box.configure(text=label)
+            value.configure(text=text, foreground=c['muted'] if kind == 'stale' else '')
+            detail.configure(text=sub)
+            tag.configure(text='stale' if kind == 'stale' else '')
 
 if __name__ == '__main__':
 
@@ -36,311 +513,11 @@ if __name__ == '__main__':
    else:
        style.theme_use('clam')
 
-   style.configure('Section.TLabelframe.Label', font=('Helvetica', 11, 'bold'))
-   style.configure('Action.TButton', font=('Helvetica', 10, 'bold'))
+   panel = Panel(root)
+   entries = panel.entries
 
-   entries = {}
-
-   title_size = 10
-   font_size = 10
-   label_font = ("Helvetica", font_size)
-   entry_width = 12
-   border_width = 2
-   pad_x = 6
-   pad_y = 3
-   section_pad = (10, 5)
-
-   # --- Scrollable canvas ---
-   canvas = Canvas(root, highlightthickness=0)
-   scrollbar = ttk.Scrollbar(root, orient=VERTICAL, command=canvas.yview)
-   outer_frame = ttk.Frame(canvas)
-
-   outer_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-   canvas.create_window((0, 0), window=outer_frame, anchor="nw")
-   canvas.configure(yscrollcommand=scrollbar.set)
-
-   def _on_mousewheel(event):
-       if sys.platform == 'darwin':
-           canvas.yview_scroll(-1 * event.delta, "units")
-       else:
-           canvas.yview_scroll(-1 * (event.delta // 120), "units")
-   canvas.bind_all("<MouseWheel>", _on_mousewheel)
-
-   scrollbar.pack(side=RIGHT, fill=Y)
-   canvas.pack(side=LEFT, fill=BOTH, expand=True)
-
-   # Two-column layout: left panel and right panel
-   left_panel = ttk.Frame(outer_frame)
-   left_panel.grid(row=0, column=0, sticky="n", padx=10, pady=10)
-
-   sep = ttk.Separator(outer_frame, orient=VERTICAL)
-   sep.grid(row=0, column=1, sticky="ns", padx=5, pady=10)
-
-   right_panel = ttk.Frame(outer_frame)
-   right_panel.grid(row=0, column=2, sticky="n", padx=10, pady=10)
-
-   # =========================================================================
-   # LEFT PANEL
-   # =========================================================================
-
-   def add_label_entry(parent, row, text, default, key):
-       ttk.Label(parent, text=text, font=label_font, anchor='w').grid(
-           row=row, column=0, sticky='w', padx=pad_x, pady=pad_y)
-       ent = ttk.Entry(parent, width=entry_width)
-       ent.insert(0, default)
-       ent.grid(row=row, column=1, sticky='e', padx=pad_x, pady=pad_y)
-       ent.label = text.lstrip('*').rstrip(':')  # named in input error messages
-       entries[key] = ent
-       return ent
-
-   def add_option_menu(parent, row, text, default, options, key):
-       ttk.Label(parent, text=text, font=label_font, anchor='w').grid(
-           row=row, column=0, sticky='w', padx=pad_x, pady=pad_y)
-       variable = StringVar(parent)
-       variable.set(default)
-       om = ttk.OptionMenu(parent, variable, default, *options)
-       om.grid(row=row, column=1, sticky='ew', padx=pad_x, pady=pad_y)
-       entries[key] = variable
-
-   # --- Section I: Golfer Parameters ---
-   sec1 = ttk.LabelFrame(left_panel, text="  (I) Golfer Parameters  ", style='Section.TLabelframe')
-   sec1.grid(row=0, column=0, sticky='ew', pady=section_pad)
-
-   add_option_menu(sec1, 0, "1. Gender:", "Male", ["Male", "Female", "Average"], 'Gender')
-   add_label_entry(sec1, 1, "2. Weight (kg):", "70.0", 'Weight')
-   add_label_entry(sec1, 2, "3. Shoulder radius (m):", "0.17", 'R_S')
-   add_label_entry(sec1, 3, "4. Arm length (m):", "0.6", 'R_A')
-
-   # --- Section II: Club Parameters ---
-   sec2 = ttk.LabelFrame(left_panel, text="  (II) Club Parameters  ", style='Section.TLabelframe')
-   sec2.grid(row=1, column=0, sticky='ew', pady=section_pad)
-
-   add_label_entry(sec2, 0, "5. Head mass (kg):", "0.2", 'M_C_head')
-   add_label_entry(sec2, 1, "6. Shaft mass (kg):", "0.1", 'M_C_shaft')
-   add_label_entry(sec2, 2, "7. Head length (m):", "0.1", 'L_C_head')
-   add_label_entry(sec2, 3, "8. Shaft length (m):", "1.0", 'L_C_shaft')
-
-   # --- Section III: Swing Conditions ---
-   sec3 = ttk.LabelFrame(left_panel, text="  (III) Swing Conditions  ", style='Section.TLabelframe')
-   sec3.grid(row=2, column=0, sticky='ew', pady=section_pad)
-
-   add_label_entry(sec3, 0, "9. Swing plane angle (deg):", "60", 'phi')
-   add_label_entry(sec3, 1, "10. Initial arm angle (deg):", "135", 'theta')
-   add_label_entry(sec3, 2, "*11. Impact arm angle (deg):", "0", 'theta_final')
-   add_label_entry(sec3, 3, "12. Initial wrist-cock angle (deg):", "120", 'beta')
-   add_label_entry(sec3, 4, "*13. Impact wrist-cock angle (deg):", "0", 'beta_final')
-   add_label_entry(sec3, 5, "*14. Horizontal accel. (m/s\u00b2):", "0", 'a_x')
-   add_label_entry(sec3, 6, "*15. Vertical accel. (m/s\u00b2):", "0", 'a_y')
-   add_option_menu(sec3, 7, "16. Swing type:", "Type I", ["Type I", "Type II"], 'Type')
-
-   # --- Section IV: Swing Torques ---
-   sec4 = ttk.LabelFrame(left_panel, text="  (IV) Swing Torques  ", style='Section.TLabelframe')
-   sec4.grid(row=3, column=0, sticky='ew', pady=section_pad)
-
-   add_label_entry(sec4, 0, "17. Arm torque (N-m):", "100", 'Q_alpha')
-   add_label_entry(sec4, 1, "*18. Raising time of arm torque (s):", "0.01", 'tau_Q_alpha')
-
-   ttk.Label(sec4, text="19. Wrist-cock torque (N-m):", font=label_font, anchor='w').grid(
-       row=2, column=0, sticky='w', padx=pad_x, pady=pad_y)
-   ent = ttk.Entry(sec4, width=entry_width)
-   ent.insert(0, "N/A")
-   ent.state(['readonly'])
-   ent.grid(row=2, column=1, sticky='e', padx=pad_x, pady=pad_y)
-   entries['Q_beta'] = ent
-
-   add_label_entry(sec4, 3, "**20. Wrist-cock torque start angle (deg):", "135", 'set_theta')
-
-   note = ttk.Label(sec4, text="(**) Item 20 should be \u2264 item 10.",
-                     foreground="red", font=("Helvetica", 9))
-   note.grid(row=4, column=0, columnspan=2, sticky='w', padx=pad_x, pady=(0, pad_y))
-
-   add_label_entry(sec4, 5, "*21. Raising time of wrist-cock torque (s):", "0.01", 'tau_Q_beta')
-   add_label_entry(sec4, 6, "*22. Min wrist-cock torque (N-m):", "-50", 'Q_beta_min')
-   add_label_entry(sec4, 7, "*23. Max wrist-cock torque (N-m):", "0", 'Q_beta_max')
-
-   ents1 = entries
-
-   btn_frame1 = ttk.Frame(sec4)
-   btn_frame1.grid(row=8, column=0, columnspan=2, sticky='ew', padx=pad_x, pady=pad_y)
-   Button(btn_frame1, text='Optimize wrist-cock torque (fast)',
-          relief=GROOVE, borderwidth=border_width,
-          command=(lambda e1=ents1: pl.Optimize_Q_beta(e1)),
-          font=("Helvetica", 9, "bold"), bg="#FFD700", activebackground="#FFE44D"
-          ).pack(fill=X, pady=2)
-   Button(btn_frame1, text='Optimize wrist-cock torque (complete)',
-          relief=GROOVE, borderwidth=border_width,
-          command=(lambda e1=ents1: pl.Optimize_Q_beta_2(e1)),
-          font=("Helvetica", 9, "bold"), bg="#FFD700", activebackground="#FFE44D"
-          ).pack(fill=X, pady=2)
-
-   # --- Section V: Simulate the Swing ---
-   sec5 = ttk.LabelFrame(left_panel, text="  (V) Simulate the Swing  ", style='Section.TLabelframe')
-   sec5.grid(row=4, column=0, sticky='ew', pady=section_pad)
-
-   add_option_menu(sec5, 0, "24. Simulation method:", "Solution 4",
-                   ["Solution 1", "Solution 2", "Solution 3", "Solution 4"], 'Method')
-
-   ttk.Label(sec5, text="25. Results to plot:", font=label_font, anchor='w').grid(
-       row=1, column=0, columnspan=2, sticky='w', padx=pad_x, pady=pad_y)
-
-   check_frame = ttk.Frame(sec5)
-   check_frame.grid(row=2, column=0, columnspan=2, sticky='w', padx=pad_x)
-
-   fig_checks = [
-       ("Tracks", 'Fig1'),
-       ("Angles", 'Fig2'),
-       ("Angular velocities", 'Fig3'),
-       ("Angular accelerations", 'Fig4'),
-       ("Clubhead velocity", 'Fig5'),
-       ("Torques", 'Fig6'),
-       ("Arm length", 'Fig8'),
-       ("1st and 2nd moments", 'Fig7'),
-   ]
-   for idx, (label, key) in enumerate(fig_checks):
-       var = BooleanVar()
-       c = ttk.Checkbutton(check_frame, text=label, variable=var)
-       c.grid(row=idx // 2, column=idx % 2, sticky='w', padx=8, pady=2)
-       entries[key] = var
-
-   # =========================================================================
-   # RIGHT PANEL
-   # =========================================================================
-
-   # --- Swing Results ---
-   sec_res = ttk.LabelFrame(right_panel, text="  Swing Results  ", style='Section.TLabelframe')
-   sec_res.grid(row=0, column=0, sticky='ew', pady=section_pad)
-
-   result_fields = [
-       ("26. Clubhead impact velocity (m/s):", 'VC'),
-       ("27. Systematic error of velocity (m/s):", 'error_VC'),
-       ("28. Clubhead impact angle (deg):", 'VC_angle'),
-       ("29. Systematic error of angle (deg):", 'error_VC_angle'),
-   ]
-   for idx, (text, key) in enumerate(result_fields):
-       ttk.Label(sec_res, text=text, font=label_font, anchor='w').grid(
-           row=idx, column=0, sticky='w', padx=pad_x, pady=pad_y)
-       ent = ttk.Entry(sec_res, width=entry_width)
-       ent.insert(0, "N/A")
-       ent.state(['readonly'])
-       ent.grid(row=idx, column=1, sticky='e', padx=pad_x, pady=pad_y)
-       entries[key] = ent
-
-   ents2 = entries
-
-   Button(sec_res, text='Simulate / Plot Golf Swing',
-          relief=GROOVE, borderwidth=border_width,
-          command=(lambda e2=ents2: pl.Plot(e2)),
-          font=("Helvetica", 10, "bold"), bg="#87CEEB", activebackground="#A8DCED"
-          ).grid(row=4, column=0, columnspan=2, sticky='ew', padx=pad_x, pady=(8, pad_y))
-
-   # --- Section VI: Golf Ball Parameters ---
-   sec6 = ttk.LabelFrame(right_panel, text="  (VI) Golf Ball Parameters  ", style='Section.TLabelframe')
-   sec6.grid(row=1, column=0, sticky='ew', pady=section_pad)
-
-   add_label_entry(sec6, 0, "30. Mass (kg):", "0.0458", 'ball_mass')
-   add_label_entry(sec6, 1, "31. Diameter (m):", "0.0428", 'ball_diameter')
-   add_label_entry(sec6, 2, "32. COR:", "0.775", 'COR')
-   add_label_entry(sec6, 3, "33. Drag coefficient:", "0.285", 'C_D')
-   add_label_entry(sec6, 4, "34. Lift coefficient:", "0.1", 'C_L')
-
-   # --- Section VII: Environmental Conditions ---
-   sec7 = ttk.LabelFrame(right_panel, text="  (VII) Environmental Conditions  ", style='Section.TLabelframe')
-   sec7.grid(row=2, column=0, sticky='ew', pady=section_pad)
-
-   add_label_entry(sec7, 0, "*35. Air density (kg/m\u00b3):", "1.2", 'rho_air')
-   add_label_entry(sec7, 1, "36. Wind speed (m/s):", "0", 'v_wind')
-   add_label_entry(sec7, 2, "37. Wind elevation angle (deg):", "0", 'wind_theta')
-   add_label_entry(sec7, 3, "38. Wind direction angle (deg):", "0", 'wind_phi')
-
-   # --- Section VIII: Launch Conditions ---
-   sec8 = ttk.LabelFrame(right_panel, text="  (VIII) Launch Conditions  ", style='Section.TLabelframe')
-   sec8.grid(row=3, column=0, sticky='ew', pady=section_pad)
-
-   add_label_entry(sec8, 0, "39. Loft angle of clubhead (deg):", "15", 'clubhead_loft')
-
-   ttk.Label(sec8, text="40. Launch speed (m/s):", font=label_font, anchor='w').grid(
-       row=1, column=0, sticky='w', padx=pad_x, pady=pad_y)
-   ent = ttk.Entry(sec8, width=entry_width)
-   ent.insert(0, "N/A")
-   ent.state(['readonly'])
-   ent.grid(row=1, column=1, sticky='e', padx=pad_x, pady=pad_y)
-   entries['ball_U'] = ent
-
-   ttk.Label(sec8, text="41. Launch elevation angle (deg):", font=label_font, anchor='w').grid(
-       row=2, column=0, sticky='w', padx=pad_x, pady=pad_y)
-   ent = ttk.Entry(sec8, width=entry_width)
-   ent.insert(0, "N/A")
-   ent.state(['readonly'])
-   ent.grid(row=2, column=1, sticky='e', padx=pad_x, pady=pad_y)
-   entries['ball_theta'] = ent
-
-   add_label_entry(sec8, 3, "*42. Launch direction angle (deg):", "0", 'ball_phi')
-   add_label_entry(sec8, 4, "43. Spin elevation angle (deg):", "0", 'ball_w_theta')
-   add_label_entry(sec8, 5, "44. Spin direction angle (deg):", "-90", 'ball_w_phi')
-
-   ents4 = entries
-
-   Button(sec8, text='Calculate launch speed and\nelevation angle from impact',
-          relief=GROOVE, borderwidth=border_width,
-          command=(lambda e4=ents4: pl.get_ball_velocity(e4)),
-          font=("Helvetica", 9, "bold"), bg="#FFD700", activebackground="#FFE44D"
-          ).grid(row=6, column=0, columnspan=2, sticky='ew', padx=pad_x, pady=(8, pad_y))
-
-   # --- Section IX: Ball Trajectory ---
-   sec9 = ttk.LabelFrame(right_panel, text="  (IX) Ball Trajectory  ", style='Section.TLabelframe')
-   sec9.grid(row=4, column=0, sticky='ew', pady=section_pad)
-
-   add_label_entry(sec9, 0, "*45. Target altitude (m):", "0", 'Altitude')
-
-   ttk.Label(sec9, text="46. Results to plot:", font=label_font, anchor='w').grid(
-       row=1, column=0, columnspan=2, sticky='w', padx=pad_x, pady=pad_y)
-
-   check_frame2 = ttk.Frame(sec9)
-   check_frame2.grid(row=2, column=0, columnspan=2, sticky='w', padx=pad_x)
-
-   fig2_checks = [
-       ("X-Z", 'Figure1'),
-       ("X-Y", 'Figure2'),
-       ("Y-Z", 'Figure3'),
-       ("X-Y-Z (3D)", 'Figure4'),
-   ]
-   for idx, (label, key) in enumerate(fig2_checks):
-       var = BooleanVar()
-       c = ttk.Checkbutton(check_frame2, text=label, variable=var)
-       c.grid(row=idx // 2, column=idx % 2, sticky='w', padx=8, pady=2)
-       entries[key] = var
-
-   # Trajectory results
-   traj_results = [
-       ("47. Drop location X (m):", 'X_final'),
-       ("48. Drop location Y (m):", 'Y_final'),
-       ("49. Flight distance X-Y (m):", 'Distance'),
-   ]
-   for idx, (text, key) in enumerate(traj_results):
-       ttk.Label(sec9, text=text, font=label_font, anchor='w').grid(
-           row=3 + idx, column=0, sticky='w', padx=pad_x, pady=pad_y)
-       ent = ttk.Entry(sec9, width=entry_width)
-       ent.insert(0, "N/A")
-       ent.state(['readonly'])
-       ent.grid(row=3 + idx, column=1, sticky='e', padx=pad_x, pady=pad_y)
-       entries[key] = ent
-
-   ents5 = entries
-
-   Button(sec9, text='Simulate / Plot Ball Trajectory',
-          relief=GROOVE, borderwidth=border_width,
-          command=(lambda e5=ents5: pl2.Plot(e5)),
-          font=("Helvetica", 10, "bold"), bg="#87CEEB", activebackground="#A8DCED"
-          ).grid(row=6, column=0, columnspan=2, sticky='ew', padx=pad_x, pady=(8, pad_y))
-
-   # --- Footer ---
-   note_label = ttk.Label(right_panel, text="(*) Suggested default value.",
-                           foreground="red", font=("Helvetica", 9))
-   note_label.grid(row=5, column=0, sticky='w', padx=pad_x, pady=(8, 0))
-
-   # Set minimum window size and initial geometry
    root.update_idletasks()
-   root.minsize(800, 600)
-   root.geometry("1050x750")
+   root.minsize(1000, 640)
+   root.geometry("1220x800")
 
    root.mainloop()

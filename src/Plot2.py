@@ -1,26 +1,13 @@
 #!/usr/bin/env python
 from math import sqrt
-from tkinter import END
 
 import matplotlib.pyplot as plt
 import AppFunc2 as func
+import BasicFunc2
 import UIFunc as ui
 
-LAUNCH_HINT = ('Items 40 and 41 (launch speed and elevation angle) are not set yet. '
-               'Click "Calculate launch speed and elevation angle from impact" first.')
-
-def _set_entry(entry, value):
-    """Update a ttk Entry field (handles readonly state)."""
-    try:
-        entry.state(['!readonly'])
-    except AttributeError:
-        pass
-    entry.delete(0, END)
-    entry.insert(0, value)
-    try:
-        entry.state(['readonly'])
-    except AttributeError:
-        pass
+LAUNCH_HINT = ('The launch speed (40) and elevation (41) are not set yet. Run step 3 '
+               '(Launch conditions) first, or type both values.')
 
 def initial(entries):
     #
@@ -80,21 +67,23 @@ def _Plot(entries):
     # show results
     #
     print_x = ("%5.3f" % show_x[step-1]).strip()
-    _set_entry(entries['X_final'], print_x)
+    ui.set_entry(entries['X_final'], print_x)
     #
     print_y = ("%5.3f" % show_y[step-1]).strip()
-    _set_entry(entries['Y_final'], print_y)
+    ui.set_entry(entries['Y_final'], print_y)
     #
     tmp_distance = sqrt(show_x[step-1]**2 + show_y[step-1]**2)
     if (show_x[step-1] >= 0.0):
         print_distance = ("%5.3f" % tmp_distance).strip()
     else:
         print_distance = ("-%5.3f" % tmp_distance).strip()
-    _set_entry(entries['Distance'], print_distance)
+    ui.set_entry(entries['Distance'], print_distance)
+    ui.set_entry(entries['Apex'], ("%5.2f" % max(show_z)).strip())
+    ui.set_entry(entries['Flight_time'], ("%5.2f" % ((step-1)*BasicFunc2.h)).strip())
     #
     # plot results
     #
-    plt.close('all')
+    ui.begin_plots(*range(9, 13))
     if (Figure1 == 'True'): 
         plt.figure(9)
         plt.clf()
@@ -131,5 +120,5 @@ def _Plot(entries):
         ax.set_zlabel('\n' + 'Z (m)', fontweight='bold', fontsize=22, linespacing=0.5)
         ax.plot(show_x, show_y, show_z, 'k-', markeredgecolor = 'none', linewidth=5)
     #--------------------------------------------------
-    plt.show()
+    ui.show_plots()
 

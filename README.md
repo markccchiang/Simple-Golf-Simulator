@@ -42,7 +42,7 @@ sudo dnf install python3-tkinter
 uv run src/Main.py        # or: python src/Main.py
 ```
 
-Each step uses the previous step's results, so click the buttons in order: **Optimize wrist-cock torque** → **Simulate / Plot Golf Swing** → **Calculate launch speed and elevation angle from impact** → **Simulate / Plot Ball Trajectory**. If a step is skipped, the error message names the button to click first.
+Click **Run all steps** to optimize the wrist torque, simulate the swing, compute the launch conditions and simulate the ball flight in one go; the results appear in cards next to the inputs, and the chosen plots open in their own windows. After you change an input, the affected results are marked stale until the next run, which re-runs only the steps that need it.
 
 ## Features
 
@@ -110,7 +110,8 @@ Then open `docs/_build/html/index.html` in your browser.
 | `src/AppFunc2.py` | Ball trajectory simulation functions |
 | `src/Plot.py` | Swing visualization |
 | `src/Plot2.py` | Ball trajectory visualization |
-| `src/UIFunc.py` | Shared input reading and error dialogs |
+| `src/Workflow.py` | Step states, stale results and results-card text for the panel |
+| `src/UIFunc.py` | Shared input reading, error dialogs and plot windows |
 | `examples/Case1.py` - `examples/Case10.py` | Standalone example cases, e.g. `uv run examples/Case1.py`; figures are saved as `.eps` in the current directory |
 | `tests/` | pytest suite |
 | `pyproject.toml`, `uv.lock` | Dependencies (uv) |

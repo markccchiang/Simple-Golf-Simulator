@@ -39,129 +39,152 @@ To start the main program:
 
    uv run src/Main.py     # or, with pip: python src/Main.py
 
-The Main Control Panel
-----------------------
+The Main Panel
+--------------
 
-The panel has two columns: the left column is for golf swing simulation, and the right column
-is for golf ball trajectory simulation. Default values are pre-filled. Users follow the item numbers
-from top to bottom, left to right, step-by-step.
+The window has two parts. On the left, the inputs are grouped in three tabs: **Golfer & club**,
+**Swing** and **Ball & conditions**. On the right are the steps to run, the results and the choice of
+plots. Default values are pre-filled, and each input keeps the item number used in this guide.
 
-**Field types:**
-
-- **Editable fields** -- input parameters, pre-filled with default values.
-- **Read-only fields** (items 19, 26--29, 40, 41 and 47--49) -- show "N/A" until they are filled
-  in by clicking the buttons. They cannot be typed into.
-
-**Workflow:** each step uses the results of the previous one, so click the buttons in this order:
-
-1. **Optimize wrist-cock torque** (fast or complete) -- fills item 19.
-2. **Simulate / Plot Golf Swing** -- fills items 26--29.
-3. **Calculate launch speed and elevation angle from impact** -- fills items 40 and 41.
-4. **Simulate / Plot Ball Trajectory** -- fills items 47--49.
-
-If a step is skipped, an error message names the button to click first. See :ref:`error-messages`.
-
-Golfer Parameters (I)
+Running the Simulation
 ^^^^^^^^^^^^^^^^^^^^^^
 
-1. **Gender** -- Male, Female or Average. Affects the percentages of weights for arm segments.
-2. **Weight (kg)** -- The golfer's weight.
-3. **Shoulder radius (m)** -- :math:`R_S`, the shoulder radius. Must be smaller than the arm length (item 4).
-4. **Arm length (m)** -- :math:`R_A`, the arm length.
+A full run has four steps, each using the results of the ones before it:
 
-Club Parameters (II)
+1. **Optimize wrist torque** -- finds the wrist-cock torque (item 19) that brings the wrist-cock angle
+   to its target at impact (item 13).
+2. **Simulate swing** -- computes the clubhead speed and angle at impact.
+3. **Launch conditions** -- computes the launch speed and elevation (items 40 and 41) from the impact.
+4. **Ball flight** -- computes the carry distance, apex and flight time.
+
+Click **Run all steps** (or press Return) to run them in order, or click a single step to run it
+together with any earlier step it needs. The line under each step shows its state:
+
+- **Not run** -- the step has not run yet.
+- **Up to date** -- the step ran with the current inputs.
+- **Stale: inputs changed** -- an input the step uses changed after it ran. Its results stay visible,
+  greyed and marked *stale*, until the next run; only the stale steps run again.
+- **Skipped: typed by hand** -- the value the step computes was typed in (see below).
+
+The pointer shows a busy cursor while the steps run, and the line below the steps says which step is
+running. If a step fails, the later steps do not run and a message explains why (see :ref:`error-messages`).
+
+Values the Steps Fill In
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The wrist-cock torque (item 19) and the launch speed and elevation (items 40 and 41) are filled in by the
+steps, marked *auto*. They can also be typed in: the field is then marked *manual* and the step that would
+compute it is skipped, which lets you try a torque by hand or study the ball flight on its own. Click
+**↺** next to the field, or clear it, to let the step compute the value again.
+
+Checking the Inputs
+^^^^^^^^^^^^^^^^^^^
+
+Inputs are checked as you type: a problem is shown in red under the field, and the tab's title shows how
+many inputs need fixing. The steps do not run until every input is valid.
+
+Inputs: Golfer & club
 ^^^^^^^^^^^^^^^^^^^^^
 
-5. **Head mass (kg)** -- Mass of the clubhead.
-6. **Shaft mass (kg)** -- Mass of the club shaft.
-7. **Head length (m)** -- Length of the clubhead :math:`L_\text{head}`.
-8. **Shaft length (m)** -- Length of the shaft :math:`L_\text{shaft}`.
+- **1. Gender** -- Male, Female or Average. Affects the percentages of weights for arm segments.
+- **2. Weight (kg)** -- The golfer's weight.
+- **3. Shoulder radius (m)** -- :math:`R_S`, the shoulder radius. Must be smaller than the arm length (item 4).
+- **4. Arm length (m)** -- :math:`R_A`, the arm length.
+- **5. Head mass (kg)** -- Mass of the clubhead.
+- **6. Shaft mass (kg)** -- Mass of the club shaft.
+- **7. Head length (m)** -- Length of the clubhead :math:`L_\text{head}`.
+- **8. Shaft length (m)** -- Length of the shaft :math:`L_\text{shaft}`.
 
-Swing Conditions (III)
-^^^^^^^^^^^^^^^^^^^^^^
+Inputs: Swing
+^^^^^^^^^^^^^
 
-9. **Swing plane angle (degree)** -- The angle :math:`\varphi`.
-10. **Initial arm angle (degree)** -- Start angle :math:`\theta_0`.
-11. **Impact arm angle (degree)** -- Final angle :math:`\theta_f` at impact.
-12. **Initial wrist-cock angle (degree)** -- Start angle :math:`\beta_0`.
-13. **Impact wrist-cock angle (degree)** -- Final angle :math:`\beta_f` at impact.
-14. **Horizontal acceleration (m/s**\ :sup:`2`\ **)** -- :math:`a_x`.
-15. **Vertical acceleration (m/s**\ :sup:`2`\ **)** -- :math:`a_y` (positive is toward the ground).
-16. **Swing type** -- Type I (restricted backswing) or Type II (full-length backswing).
+*Swing*
 
-Swing Torques (IV)
-^^^^^^^^^^^^^^^^^^
+- **9. Swing plane angle (degree)** -- The angle :math:`\varphi`.
+- **10. Initial arm angle (degree)** -- Start angle :math:`\theta_0`.
+- **12. Initial wrist-cock angle (degree)** -- Start angle :math:`\beta_0`.
+- **16. Swing type** -- Type I (restricted backswing) or Type II (full-length backswing).
+- **24. Solver** -- Solution 1, 2, 3 or 4 (default: Solution 4). Solution 4 is the most accurate and
+  the fastest; Solutions 1--3 are the original methods, kept for comparison. See :ref:`numerical-solutions`.
 
-17. **Arm torque (N-m)** -- :math:`Q_\alpha`, positive is counter-clockwise.
-18. **Rising time of arm torque (sec)** -- :math:`\tau_{Q_\alpha}`.
-19. **Wrist-cock torque (N-m)** -- :math:`Q_\beta`, positive is clockwise. Read-only; filled by the optimization buttons.
-20. **Starting arm angle for wrist-cock torque (degree)** -- Must be :math:`\leq \theta_0` (item 10).
-21. **Rising time of wrist-cock torque (sec)** -- :math:`\tau_{Q_\beta}`.
-22. **Minimum wrist-cock torque (N-m)** -- Lower bound for optimization.
-23. **Maximum wrist-cock torque (N-m)** -- Upper bound for optimization.
+*Torques*
 
-**Optimization buttons:**
+- **17. Arm torque (N-m)** -- :math:`Q_\alpha`, positive is counter-clockwise.
+- **19. Wrist-cock torque (N-m)** -- :math:`Q_\beta`, positive is clockwise. Filled in by step 1, or typed in.
+- **20. Wrist torque starts at arm angle (degree)** -- The arm angle at which the wrist-cock torque starts.
+  Must not exceed :math:`\theta_0` (item 10).
 
-- **Fast** -- Scans wrist-cock torque from maximum to the optimized value.
-- **Complete** -- Scans from maximum to 10 N-m beyond the optimized value for thorough analysis.
+*Wrist-torque search* (used by step 1)
 
-The optimized value is filled into item 19. Plots of :math:`\beta` vs :math:`-Q_\beta` are shown.
+- **13. Target wrist-cock angle at impact (degree)** -- Final angle :math:`\beta_f` at impact.
+- **22. Lowest torque to try (N-m)** -- Lower bound of the search.
+- **23. Highest torque to try (N-m)** -- Upper bound of the search.
 
-Simulate the Swing (V)
-^^^^^^^^^^^^^^^^^^^^^^^
+- **Search** -- *Fast* scans from the highest torque down to the result; *Complete* also scans past the
+  result for a thorough analysis (slower).
 
-24. **Simulation method** -- Solution 1, 2, 3 or 4 (default: Solution 4). Solution 4 is the most accurate and
-    the fastest; Solutions 1--3 are the original methods, kept for comparison. See :ref:`numerical-solutions`.
-25. **Results to plot** -- Check any combination of: Tracks, Angles, Angular velocities,
-    Angular accelerations, Clubhead velocity, Torques, Arm length, 1st and 2nd moments.
+*Advanced* (click to show)
 
-**Swing Results:**
+- **11. Impact arm angle (degree)** -- Final angle :math:`\theta_f` at impact.
+- **14. Horizontal hand acceleration (m/s**\ :sup:`2`\ **)** -- :math:`a_x`.
+- **15. Vertical hand acceleration (m/s**\ :sup:`2`\ **)** -- :math:`a_y` (positive is toward the ground).
+- **18. Arm torque rise time (sec)** -- :math:`\tau_{Q_\alpha}`.
+- **21. Wrist torque rise time (sec)** -- :math:`\tau_{Q_\beta}`.
 
-26. **Clubhead impact velocity (m/s)**
-27. **Systematic error of velocity (m/s)** -- Change when :math:`Q_\beta \pm 0.01` N-m.
-28. **Clubhead impact angle (degree)** -- Elevation angle :math:`\theta_{\vec{V_C}}`.
-29. **Systematic error of angle (degree)** -- Change when :math:`Q_\beta \pm 0.01` N-m.
-
-Golf Ball Parameters (VI)
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-30. **Mass (kg)** -- Golf ball mass.
-31. **Diameter (m)** -- Golf ball diameter.
-32. **COR** -- Coefficient of restitution.
-33. **Drag coefficient** -- :math:`C_D`.
-34. **Lift coefficient** -- :math:`C_L`.
-
-Environmental Conditions (VII)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-35. **Air density (kg/m**\ :sup:`3`\ **)** -- Depends on weather and altitude.
-36. **Wind speed (m/s)** -- Absolute value.
-37. **Wind elevation angle (degree)** -- :math:`\theta_\text{wind}`.
-38. **Wind direction angle (degree)** -- :math:`\varphi_\text{wind}`.
-
-Launch Conditions (VIII)
+Inputs: Ball & conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-39. **Loft angle of clubhead (degree)** -- Elevation angle given to the ball.
-40. **Launch speed (m/s)** -- Read-only; calculated from clubhead velocity and COR.
-41. **Launch elevation angle (degree)** -- Read-only; calculated from impact angle + loft.
-42. **Launch direction angle (degree)** -- :math:`\varphi`.
-43. **Spin elevation angle (degree)** -- :math:`\theta_w`.
-44. **Spin direction angle (degree)** -- :math:`\varphi_w`.
+*Golf ball*
 
-**Calculate button** computes items 40 and 41 from the swing results and loft angle.
+- **30. Mass (kg)** -- Golf ball mass.
+- **31. Diameter (m)** -- Golf ball diameter.
+- **32. Coefficient of restitution** -- COR of the club-ball impact.
+- **33. Drag coefficient** -- :math:`C_D`.
+- **34. Lift coefficient** -- :math:`C_L`.
 
-Ball Trajectory (IX)
-^^^^^^^^^^^^^^^^^^^^^
+*Launch*
 
-45. **Target altitude (m)** -- Altitude relative to launch point (default: 0).
-46. **Results to plot** -- X-Z, X-Y, Y-Z, or X-Y-Z (3D plot).
+- **39. Clubhead loft (degree)** -- Elevation angle given to the ball.
+- **40. Launch speed (m/s)** -- Filled in by step 3 from the clubhead speed and COR, or typed in.
+- **41. Launch elevation (degree)** -- Filled in by step 3 from the impact angle and loft, or typed in.
+- **42. Launch direction (degree)** -- :math:`\varphi`.
+- **43. Spin elevation (degree)** -- :math:`\theta_w`.
+- **44. Spin direction (degree)** -- :math:`\varphi_w`.
 
-**Trajectory Results:**
+*Wind*
 
-47. **Drop location X (m)**
-48. **Drop location Y (m)**
-49. **Flight distance in X-Y plane (m)** -- Negative means behind the golfer.
+- **36. Wind speed (m/s)** -- Absolute value.
+- **37. Wind elevation (degree)** -- :math:`\theta_\text{wind}`.
+- **38. Wind direction (degree)** -- :math:`\varphi_\text{wind}`.
+
+*Advanced* (click to show)
+
+- **35. Air density (kg/m**\ :sup:`3`\ **)** -- Depends on weather and altitude.
+- **45. Landing height vs. tee (m)** -- Height of the landing point relative to the launch point (default: 0).
+
+Results
+^^^^^^^
+
+The results are shown in six cards:
+
+- **Wrist-cock torque** -- item 19, found by the optimizer or entered by hand.
+- **Clubhead speed at impact** -- in m/s and mph, with its systematic error: the change when the
+  wrist-cock torque changes by :math:`\pm 0.01` N-m.
+- **Clubhead angle at impact** -- the elevation angle :math:`\theta_{\vec{V_C}}`, with its systematic error.
+- **Launch** -- the launch speed and elevation (items 40 and 41).
+- **Carry distance** -- the flight distance in the X-Y plane, in meters and yards (negative means behind
+  the golfer), and the lateral distance of the landing point.
+- **Apex and flight time** -- the highest point of the flight and the time to land.
+
+Plots
+^^^^^
+
+Choose the plots to show under **Plots to show**; each opens in its own window when its step runs, and
+replaces that step's earlier plots.
+
+- *Swing* -- swing tracks, angles, angular velocities, angular accelerations, clubhead speed, torques,
+  arm length, 1st and 2nd moments, and the wrist-torque search (:math:`\beta` vs :math:`-Q_\beta`).
+- *Ball flight* -- side view (X-Z), top view (X-Y), rear view (Y-Z) and 3D.
 
 .. _error-messages:
 
@@ -173,21 +196,25 @@ Problems are reported in a dialog instead of stopping the program.
 **Input Error** -- something to fix in the panel:
 
 - *"<item>" must be a number* -- the named field contains text that is not a number.
-- *Item(s) ... are not set yet. Click "..." first* -- a step of the workflow was skipped; click the
-  named button, then try again.
+- *... is not set yet. Run step N (...) first* -- a value a step fills in is missing; run that step,
+  or type the value in.
 - *The shoulder radius (item 3) must be greater than 0 and smaller than the arm length (item 4).*
 - *No wrist-cock torque in the allowed range reaches the target* -- no torque between items 22 and 23
   brings the wrist-cock angle to the impact target (item 13). The message says whether to lower item 22
-  or raise item 23. Item 19 stays "N/A" until the optimization succeeds.
+  or raise item 23. Item 19 stays empty until the optimization succeeds.
 - *The minimum wrist-cock torque (item 22) must not be greater than the maximum (item 23).*
+
+Inputs that are not numbers, a shoulder radius not smaller than the arm length, a wrist torque start angle
+above the initial arm angle, and a torque range whose lowest value is above its highest are also shown in
+red under the field as you type (see Checking the Inputs above).
 
 **Simulation Error** -- the inputs are valid numbers, but the simulation cannot produce a result:
 
 - *Swing did not reach the impact arm angle within 2.0 sec* -- the arm torque (item 17) is too weak
   to bring the arm down to the impact angle (item 11). Increase the arm torque.
-- *Ball never reaches the target altitude* -- the target altitude (item 45) is higher than the top of
-  the ball's flight. Lower the target altitude or increase the launch speed.
-- *Ball is still in flight after 100 sec* -- the target altitude (item 45) is too far below the
+- *Ball never reaches the target altitude* -- the landing height (item 45) is higher than the top of
+  the ball's flight. Lower the landing height or increase the launch speed.
+- *Ball is still in flight after 100 sec* -- the landing height (item 45) is too far below the
   launch point.
 - *Launch speed must be positive.*
 - *The simulation could not be computed with these inputs* -- the golfer and club dimensions are not

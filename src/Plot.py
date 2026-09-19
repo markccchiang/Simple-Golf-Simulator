@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 from math import pi as PI
-from tkinter import END
 
 import matplotlib.pyplot as plt
 import AppFunc as func
 import BasicFunc as base
 import UIFunc as ui
 
-SWING_HINT = ('Items 26 and 28 (clubhead impact velocity and angle) are not set yet. '
-              'Click "Simulate / Plot Golf Swing" first.')
+SWING_HINT = ('The clubhead speed and angle at impact are not computed yet. '
+              'Run step 2 (Simulate swing) first.')
 
 def _check_swing_geometry(R_S, R_A):
     """Reject shoulder/arm dimensions the two-rod model cannot represent."""
@@ -16,19 +15,6 @@ def _check_swing_geometry(R_S, R_A):
         raise ui.UserFacingError(
             "The shoulder radius (item 3) must be greater than 0 and smaller "
             "than the arm length (item 4).")
-
-def _set_entry(entry, value):
-    """Update a ttk Entry field (handles readonly state)."""
-    try:
-        entry.state(['!readonly'])
-    except AttributeError:
-        pass
-    entry.delete(0, END)
-    entry.insert(0, value)
-    try:
-        entry.state(['readonly'])
-    except AttributeError:
-        pass
 
 @ui.validate_inputs
 def get_ball_velocity(entries):
@@ -41,7 +27,7 @@ def get_ball_velocity(entries):
     VC           = ui.require_result(entries, 'VC', SWING_HINT)
     ans_ball_velocity = base.Ball_velocity(VC, tmp_M_C_head, ball_mass, COR)
     tmp_ans_ball_velocity = ("%5.2f" % ans_ball_velocity).strip()
-    _set_entry(entries['ball_U'], tmp_ans_ball_velocity)
+    ui.set_entry(entries['ball_U'], tmp_ans_ball_velocity)
     #
     # Calculate the elevation angle of ball
     #
@@ -51,7 +37,7 @@ def get_ball_velocity(entries):
     tmp_clubhead_loft = ui.get_float(entries, 'clubhead_loft') # (degree) 
     tmp_ans_elevation = tmp_theta_final + tmp_beta_final + tmp_clubhead_loft + tmp_VC_angle
     tmp2_ans_elevation= ("%5.2f" % tmp_ans_elevation).strip()
-    _set_entry(entries['ball_theta'], tmp2_ans_elevation)
+    ui.set_entry(entries['ball_theta'], tmp2_ans_elevation)
 
 def _read_swing_params(entries):
     """Read swing parameters from UI entries."""
@@ -127,9 +113,11 @@ def _best_Q_beta(array_Q_beta, array_beta, beta_final, Q_beta_min, Q_beta_max):
 
 def _plot_optimization(entries, array_Q_beta, array_beta, k, beta_final, Q_beta_min, Q_beta_max):
     """Display optimization results and plot."""
-    _set_entry(entries['Q_beta'], 'N/A') # stays N/A if no torque in the range reaches the target
+    ui.set_entry(entries['Q_beta'], '') # stays empty if no torque in the range reaches the target
     best_Q_beta = _best_Q_beta(array_Q_beta, array_beta, beta_final, Q_beta_min, Q_beta_max)
-    _set_entry(entries['Q_beta'], ("%5.2f" % best_Q_beta).strip())
+    ui.set_entry(entries['Q_beta'], ("%5.2f" % best_Q_beta).strip())
+    if 'Fig0' in entries and str(entries['Fig0'].get()) != 'True':
+        return # the panel lets users turn this plot off
     #
     array_dQ_beta = []
     array_Q_beta2 = []
@@ -139,7 +127,7 @@ def _plot_optimization(entries, array_Q_beta, array_beta, k, beta_final, Q_beta_
         array_dQ_beta.append(tmp_dbeta/tmp_dQ_beta)
         array_Q_beta2.append(array_Q_beta[j])
     #
-    plt.close('all')
+    ui.begin_plots(0)
     plt.figure(0)
     plt.clf()
     #
@@ -156,7 +144,7 @@ def _plot_optimization(entries, array_Q_beta, array_beta, k, beta_final, Q_beta_
     plt.xlabel(r'$-Q_\beta$ (N-m)')
     plt.ylabel(r'$-d\beta/dQ_\beta$ (degree/N-m)')
     plt.plot(array_Q_beta2, array_dQ_beta, 'r.', markersize=10, linewidth=1)
-    plt.show()
+    ui.show_plots()
 
 @ui.validate_inputs
 def Optimize_Q_beta(entries):
@@ -261,8 +249,8 @@ def Plot(entries):
     #
     p = _read_swing_params(entries)
     Q_beta     = ui.require_result(entries, 'Q_beta',
-                                   'Item 19 (wrist-cock torque) is not set yet. '
-                                   'Click "Optimize wrist-cock torque" first.') # (N-m)
+                                   'The wrist-cock torque (19) is not set yet. Run step 1 '
+                                   '(Optimize wrist torque) first, or type a torque.') # (N-m)
     Fig1       = str(entries['Fig1'].get())
     Fig2       = str(entries['Fig2'].get())
     Fig3       = str(entries['Fig3'].get())
@@ -290,7 +278,7 @@ def Plot(entries):
     print_VC = ("%5.2f" % r.VC[-1]).strip()
     print1_VC = ("%5.2f" % r1.VC[-1]).strip()
     print2_VC = ("%5.2f" % r2.VC[-1]).strip()
-    _set_entry(entries['VC'], print_VC)
+    ui.set_entry(entries['VC'], print_VC)
     #
     print_VC_angle = r.VC_angle[-1]*180.0/PI
     print1_VC_angle = r1.VC_angle[-1]*180.0/PI
@@ -298,22 +286,22 @@ def Plot(entries):
     print_VC_angle = ("%5.2f" % print_VC_angle).strip()
     print1_VC_angle = ("%5.2f" % print1_VC_angle).strip()
     print2_VC_angle = ("%5.2f" % print2_VC_angle).strip()
-    _set_entry(entries['VC_angle'], print_VC_angle)
+    ui.set_entry(entries['VC_angle'], print_VC_angle)
     #
     error1_VC = float(print1_VC) - float(print_VC)
     error2_VC = float(print2_VC) - float(print_VC)
     print_error_VC = '['+("%5.2f" % error1_VC).strip()+', '+("%5.2f" % error2_VC).strip()+']'
-    _set_entry(entries['error_VC'], print_error_VC)
+    ui.set_entry(entries['error_VC'], print_error_VC)
     #
     error1_VC_angle = float(print1_VC_angle) - float(print_VC_angle)
     error2_VC_angle = float(print2_VC_angle) - float(print_VC_angle)
     print_error_VC_angle = '['+("%5.2f" % error1_VC_angle).strip()+', '+("%5.2f" % error2_VC_angle).strip()+']'
-    _set_entry(entries['error_VC_angle'], print_error_VC_angle)
+    ui.set_entry(entries['error_VC_angle'], print_error_VC_angle)
 
     #
     # plot results
     #
-    plt.close('all')
+    ui.begin_plots(*range(1, 9))
     if (Fig1 == 'True'): 
         plt.figure(1)
         plt.clf()
@@ -431,5 +419,5 @@ def Plot(entries):
         plt.tick_params(axis="y")
         plt.plot(r.t[:step], r.R[:step], 'k-', markersize=10, linewidth=5)
     #--------------------------------------------------
-    plt.show()
+    ui.show_plots()
 

@@ -126,7 +126,7 @@ def test_optimizer_reports_a_target_out_of_range_instead_of_a_wrong_torque(dialo
     title, msg = dialogs[0]
     assert title == 'Input Error'
     assert 'Lower the minimum wrist-cock torque (item 22)' in msg
-    assert entries['Q_beta'].get() == 'N/A'
+    assert entries['Q_beta'].get() == ''
 
 
 def test_optimizer_rejects_a_reversed_torque_range(dialogs):

@@ -1,4 +1,7 @@
-from tkinter import messagebox
+from contextlib import contextmanager
+from tkinter import END, messagebox
+
+import matplotlib.pyplot as plt
 
 class UserFacingError(Exception):
     """An error whose message is written for the user and shown as-is."""
@@ -14,6 +17,7 @@ def validate_inputs(func_to_wrap):
     """Wrap a UI callback so any failure is shown in an error dialog instead of crashing.
 
     Shows a busy cursor while the callback runs, since simulations block the window.
+    Returns True if the callback finished, False if an error was shown.
     """
     def wrapper(entries):
         window = _window(entries)
@@ -22,7 +26,8 @@ def validate_inputs(func_to_wrap):
             window.update_idletasks()
         try:
             try:
-                return func_to_wrap(entries)
+                func_to_wrap(entries)
+                return True
             finally:
                 if window is not None:
                     window.config(cursor='') # restore before any error dialog appears
@@ -37,6 +42,7 @@ def validate_inputs(func_to_wrap):
                 "e.g. the shoulder radius must be smaller than the arm length." % e)
         except Exception as e:
             messagebox.showerror("Error", str(e))
+        return False
     return wrapper
 
 def get_float(entries, key):
@@ -49,8 +55,59 @@ def get_float(entries, key):
         raise UserFacingError('"%s" must be a number, but it is "%s".' % (label, value)) from None
 
 def require_result(entries, key, hint):
-    """Read a readonly result field that an earlier step fills in; explain which step if it is empty."""
-    value = entries[key].get()
-    if value == 'N/A':
+    """Read a field that an earlier step fills in (or the user types); explain which step if it is empty."""
+    if entries[key].get().strip() in ('', 'N/A'):
         raise UserFacingError(hint)
-    return float(value)
+    return get_float(entries, key)
+
+def set_entry(entry, value):
+    """Write a value into an Entry (or ResultField), keeping it read-only if it was."""
+    try:
+        readonly = entry.instate(['readonly'])
+        entry.state(['!readonly'])
+    except AttributeError:
+        readonly = False
+    entry.delete(0, END)
+    entry.insert(0, value)
+    if readonly:
+        entry.state(['readonly'])
+
+class ResultField:
+    """A result shown as text rather than in an Entry; it offers the Entry methods that
+    _set_entry and require_result use, and stores the value in a StringVar."""
+    def __init__(self, var):
+        self.var = var
+
+    def get(self):
+        return self.var.get()
+
+    def delete(self, first, last):
+        self.var.set('')
+
+    def insert(self, index, value):
+        self.var.set(value)
+
+#
+# Each step replaces its own plot windows (by figure number) and shows the new ones; the panel
+# runs its steps in a batch, which shows every new plot once at the end.
+#
+_batch = False
+
+def begin_plots(*numbers):
+    for n in numbers:
+        plt.close(n)
+
+def show_plots():
+    if not _batch:
+        plt.show(block=False) # plot windows stay open while the panel keeps working
+
+@contextmanager
+def batch_plots():
+    global _batch
+    _batch = True
+    try:
+        yield
+    finally:
+        _batch = False
+    if plt.get_fignums():
+        plt.show(block=False)
