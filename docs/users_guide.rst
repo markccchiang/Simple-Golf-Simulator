@@ -4,14 +4,21 @@ User's Guide
 Installation
 ------------
 
-The Simple Golf Simulator is written in Python. Before running the program, install the
-required packages:
+The Simple Golf Simulator is written in Python. The recommended way to install it is with
+`uv <https://docs.astral.sh/uv/>`_, which installs Python 3.12 (including ``tkinter``) and all
+required packages into a local ``.venv``:
+
+.. code-block:: bash
+
+   uv sync
+
+Alternatively, install the required packages with pip (Python 3.12+ recommended):
 
 .. code-block:: bash
 
    pip install matplotlib numpy
 
-Python 3.12+ is recommended. On Linux, ``tkinter`` may need to be installed separately:
+With pip on Linux, ``tkinter`` may need to be installed separately:
 
 .. code-block:: bash
 
@@ -22,14 +29,14 @@ Python 3.12+ is recommended. On Linux, ``tkinter`` may need to be installed sepa
    sudo dnf install python3-tkinter
 
 The main files are ``AppFunc.py``, ``AppFunc2.py``, ``BasicFunc.py``,
-``BasicFunc2.py``, ``Plot.py``, ``Plot2.py`` and ``Main.py``. All must be in the same
+``BasicFunc2.py``, ``Plot.py``, ``Plot2.py``, ``UIFunc.py`` and ``Main.py``. All must be in the same
 directory. The case files ``Case1.py`` through ``Case10.py`` are standalone demonstration scripts.
 
 To start the main program:
 
 .. code-block:: bash
 
-   python Main.py
+   uv run Main.py     # or, with pip: python Main.py
 
 The Main Control Panel
 ----------------------
@@ -38,18 +45,27 @@ The panel has two columns: the left column is for golf swing simulation, and the
 is for golf ball trajectory simulation. Default values are pre-filled. Users follow the item numbers
 from top to bottom, left to right, step-by-step.
 
-**Color coding:**
+**Field types:**
 
-- **White fields** -- user-editable parameters
-- **Yellow fields** -- auto-filled by clicking yellow buttons (can also be manually set)
-- **Blue fields** -- simulation results, auto-filled by clicking blue buttons
+- **Editable fields** -- input parameters, pre-filled with default values.
+- **Read-only fields** (items 19, 26--29, 40, 41 and 47--49) -- show "N/A" until they are filled
+  in by clicking the buttons. They cannot be typed into.
+
+**Workflow:** each step uses the results of the previous one, so click the buttons in this order:
+
+1. **Optimize wrist-cock torque** (fast or complete) -- fills item 19.
+2. **Simulate / Plot Golf Swing** -- fills items 26--29.
+3. **Calculate launch speed and elevation angle from impact** -- fills items 40 and 41.
+4. **Simulate / Plot Ball Trajectory** -- fills items 47--49.
+
+If a step is skipped, an error message names the button to click first. See :ref:`error-messages`.
 
 Golfer Parameters (I)
 ^^^^^^^^^^^^^^^^^^^^^^
 
 1. **Gender** -- Male, Female or Average. Affects the percentages of weights for arm segments.
 2. **Weight (kg)** -- The golfer's weight.
-3. **Shoulder radius (m)** -- :math:`R_S`, the shoulder radius.
+3. **Shoulder radius (m)** -- :math:`R_S`, the shoulder radius. Must be smaller than the arm length (item 4).
 4. **Arm length (m)** -- :math:`R_A`, the arm length.
 
 Club Parameters (II)
@@ -77,7 +93,7 @@ Swing Torques (IV)
 
 17. **Arm torque (N-m)** -- :math:`Q_\alpha`, positive is counter-clockwise.
 18. **Rising time of arm torque (sec)** -- :math:`\tau_{Q_\alpha}`.
-19. **Wrist-cock torque (N-m)** -- :math:`Q_\beta`, positive is clockwise. Auto-filled by optimization.
+19. **Wrist-cock torque (N-m)** -- :math:`Q_\beta`, positive is clockwise. Read-only; filled by the optimization buttons.
 20. **Starting arm angle for wrist-cock torque (degree)** -- Must be :math:`\leq \theta_0` (item 10).
 21. **Rising time of wrist-cock torque (sec)** -- :math:`\tau_{Q_\beta}`.
 22. **Minimum wrist-cock torque (N-m)** -- Lower bound for optimization.
@@ -125,8 +141,8 @@ Launch Conditions (VIII)
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 39. **Loft angle of clubhead (degree)** -- Elevation angle given to the ball.
-40. **Launch speed (m/s)** -- Auto-calculated from clubhead velocity and COR.
-41. **Launch elevation angle (degree)** -- Auto-calculated from impact angle + loft.
+40. **Launch speed (m/s)** -- Read-only; calculated from clubhead velocity and COR.
+41. **Launch elevation angle (degree)** -- Read-only; calculated from impact angle + loft.
 42. **Launch direction angle (degree)** -- :math:`\varphi`.
 43. **Spin elevation angle (degree)** -- :math:`\theta_w`.
 44. **Spin direction angle (degree)** -- :math:`\varphi_w`.
@@ -144,3 +160,30 @@ Ball Trajectory (IX)
 47. **Drop location X (m)**
 48. **Drop location Y (m)**
 49. **Flight distance in X-Y plane (m)** -- Negative means behind the golfer.
+
+.. _error-messages:
+
+Error Messages
+--------------
+
+Problems are reported in a dialog instead of stopping the program.
+
+**Input Error** -- something to fix in the panel:
+
+- *"<item>" must be a number* -- the named field contains text that is not a number.
+- *Item(s) ... are not set yet. Click "..." first* -- a step of the workflow was skipped; click the
+  named button, then try again.
+- *The shoulder radius (item 3) must be greater than 0 and smaller than the arm length (item 4).*
+
+**Simulation Error** -- the inputs are valid numbers, but the simulation cannot produce a result:
+
+- *Swing did not reach the impact arm angle within 2.0 sec* -- the arm torque (item 17) is too weak
+  to bring the arm down to the impact angle (item 11). Increase the arm torque.
+- *Ball never reaches the target altitude* -- the target altitude (item 45) is higher than the top of
+  the ball's flight. Lower the target altitude or increase the launch speed.
+- *Ball is still in flight after 100 sec* -- the target altitude (item 45) is too far below the
+  launch point.
+- *Launch speed must be positive.*
+- *The simulation could not be computed with these inputs* -- the golfer and club dimensions are not
+  physically consistent for the chosen swing type. Check items 3, 4 and 16; Type II needs a
+  shoulder radius well below the arm length.

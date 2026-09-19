@@ -321,17 +321,17 @@ Using the parameter settings above, the three solutions produce nearly identical
      - :math:`\theta_{\vec{V_C}}` (degree)
      - Swing time (sec)
    * - Solution 1
-     - 52.85
-     - 0.01
-     - 0.2123
+     - 52.83
+     - 0.18
+     - 0.2124
    * - Solution 2
-     - 52.78
-     - 0.03
-     - 0.2123
+     - 52.77
+     - 0.48
+     - 0.2125
    * - Solution 3
-     - 52.80
-     - -0.02
-     - 0.2123
+     - 52.79
+     - 0.42
+     - 0.2125
 
 Case 2: The Effect of Arm Torque
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

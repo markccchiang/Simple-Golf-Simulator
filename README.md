@@ -42,6 +42,8 @@ sudo dnf install python3-tkinter
 uv run Main.py        # or: python Main.py
 ```
 
+Each step uses the previous step's results, so click the buttons in order: **Optimize wrist-cock torque** → **Simulate / Plot Golf Swing** → **Calculate launch speed and elevation angle from impact** → **Simulate / Plot Ball Trajectory**. If a step is skipped, the error message names the button to click first.
+
 ## Features
 
 ### Swing Simulation
@@ -72,6 +74,14 @@ Tracks, angles, angular velocities, angular accelerations, clubhead velocity, to
 **Ball trajectory plots:**
 X-Z (elevation), X-Y (horizontal), Y-Z (lateral), and 3D flight path.
 
+## Running Tests
+
+```bash
+uv run pytest
+```
+
+The tests in `tests/` run the swing and ball-trajectory simulations headless and check the GUI's error messages without opening a window.
+
 ## Documentation
 
 The full technical report (two-rod swing model, aerodynamic equations, simulation cases, and user's guide) is available as Sphinx documentation under `docs/`.
@@ -81,7 +91,7 @@ To build:
 ```bash
 uv sync --group docs
 cd docs
-uv run sphinx-build -b html . _build/html
+uv run --group docs sphinx-build -b html . _build/html
 ```
 
 (Or with pip: `pip install sphinx sphinx-rtd-theme`, then run `sphinx-build` the same way.)
@@ -99,7 +109,10 @@ Then open `docs/_build/html/index.html` in your browser.
 | `AppFunc2.py` | Ball trajectory simulation functions |
 | `Plot.py` | Swing visualization |
 | `Plot2.py` | Ball trajectory visualization |
+| `UIFunc.py` | Shared input reading and error dialogs |
 | `Case1.py` - `Case10.py` | Standalone example cases |
+| `tests/` | pytest suite |
+| `pyproject.toml`, `uv.lock` | Dependencies (uv) |
 
 ## License
 
