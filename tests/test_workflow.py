@@ -113,7 +113,7 @@ def test_result_cards_mark_stale_results_and_hide_missing_ones():
     cards = {c[0]: c for c in Workflow.result_cards(empty, wf)}
     assert cards['Clubhead speed at impact'][3] == 'ok'
     assert cards['Apex · flight time'][3] == 'stale'
-    assert cards['Carry distance'][1:] == ('—', '', 'none')
+    assert cards['Carry distance'][1:] == ('—', 'Run step 4', 'none')
 
 
 def test_hand_typed_values_are_never_stale():
@@ -123,3 +123,11 @@ def test_hand_typed_values_are_never_stale():
     wf.input_changed(1)
     cards = {c[0]: c for c in Workflow.result_cards(RESULTS, wf)}
     assert cards['Wrist-cock torque'][2:] == ('entered by hand', 'ok')
+
+
+def test_result_cards_typeset_negative_numbers_with_a_minus_sign():
+    wf = Flow()
+    run_all(wf)
+    cards = {c[0]: c for c in Workflow.result_cards(RESULTS, wf)}
+    assert cards['Wrist-cock torque'][1] == '\u221220.62 N·m'
+    assert cards['Clubhead angle at impact'][1] == '\u22120.11°'

@@ -3,7 +3,11 @@
 # which steps have run, which results are stale after an input changed, and which in-between
 # values the user typed by hand instead of letting a step compute them.
 #
+import re
+
 STEP_LABELS = ('Optimize wrist torque', 'Simulate swing', 'Launch conditions', 'Ball flight')
+
+STEP_BUTTONS = ('Optimize', 'Swing', 'Launch', 'Ball flight') # short enough for a button
 
 STEP_ACTIVITY = ('Optimizing the wrist-cock torque…', 'Simulating the swing…',
                  'Computing the launch speed and angle…', 'Simulating the ball flight…')
@@ -110,6 +114,10 @@ def _num(text):
     except (TypeError, ValueError):
         return None
 
+def _minus(text):
+    """Typeset negative numbers with a true minus sign ('-20.62' -> '−20.62')."""
+    return re.sub(r'-(?=\d)', '\u2212', text)
+
 def _plus_minus(bracket):
     """'[-0.22, 2.22]' (the change for Q_beta +/- 0.01 N-m) -> '2.22', the larger of the two."""
     parts = [_num(p) for p in str(bracket).strip('[] ').split(',')]
@@ -120,10 +128,11 @@ def _plus_minus(bracket):
 def result_cards(v, wf):
     """Text for the results cards from the result values (strings keyed like `entries`).
     Each card: (label, value, detail, state), state being 'none', 'ok' or 'stale'."""
-    def card(label, step, value, detail, ready):
+    def card(label, step, value, detail, ready, hint):
         # step: the step whose result this is (None for a value typed by hand, which is never stale)
         if not ready:
-            return (label, '—', '', 'none')
+            return (label, '—', hint, 'none')
+        value, detail = _minus(value), _minus(detail)
         return (label, value, detail, 'stale' if step is not None and wf.states[step] == STALE else 'ok')
 
     cards = []
@@ -131,29 +140,29 @@ def result_cards(v, wf):
     by_hand = 'Q_beta' in wf.manual
     cards.append(card('Wrist-cock torque', None if by_hand else 0, '%.2f N·m' % q if q is not None else '',
                       'entered by hand' if by_hand else 'found by the optimizer',
-                      q is not None and (by_hand or wf.states[0] != IDLE)))
+                      q is not None and (by_hand or wf.states[0] != IDLE), 'Run step 1, or type item 19'))
 
     vc, e = _num(v['VC']), _plus_minus(v['error_VC'])
     cards.append(card('Clubhead speed at impact', 1, '%.2f m/s' % vc if vc is not None else '',
                       '%.1f mph' % (vc * 2.23694) + (' · ±%s m/s' % e if e else '') if vc is not None else '',
-                      vc is not None))
+                      vc is not None, 'Run step 2'))
 
     ang, e = _num(v['VC_angle']), _plus_minus(v['error_VC_angle'])
     cards.append(card('Clubhead angle at impact', 1, '%.2f°' % ang if ang is not None else '',
-                      '±%s° for ±0.01 N·m wrist torque' % e if e else '', ang is not None))
+                      '±%s° for ±0.01 N·m wrist torque' % e if e else '', ang is not None, 'Run step 2'))
 
     u, th = _num(v['ball_U']), _num(v['ball_theta'])
     launch_by_hand = {'ball_U', 'ball_theta'} & wf.manual
     cards.append(card('Launch', None if len(launch_by_hand) == 2 else 2, '%.1f m/s @ %.1f°' % (u, th) if None not in (u, th) else '',
                       '%.1f mph' % (u * 2.23694) + (' · entered by hand' if launch_by_hand else '') if u is not None else '',
-                      None not in (u, th)))
+                      None not in (u, th), 'Run step 3, or type items 40–41'))
 
     d, lat = _num(v['Distance']), _num(v['Y_final'])
     cards.append(card('Carry distance', 3, '%.1f m' % d if d is not None else '',
                       '%.1f yd' % (d * 1.09361) + (' · lateral %.1f m' % abs(lat) if lat is not None else '') if d is not None else '',
-                      d is not None))
+                      d is not None, 'Run step 4'))
 
     apex, t = _num(v['Apex']), _num(v['Flight_time'])
     cards.append(card('Apex · flight time', 3, '%.1f m · %.2f s' % (apex, t) if None not in (apex, t) else '',
-                      '%.0f ft apex' % (apex * 3.28084) if apex is not None else '', None not in (apex, t)))
+                      '%.0f ft apex' % (apex * 3.28084) if apex is not None else '', None not in (apex, t), 'Run step 4'))
     return cards

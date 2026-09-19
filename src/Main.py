@@ -120,16 +120,27 @@ class ScrollFrame(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.canvas = Canvas(self, highlightthickness=0, borderwidth=0)
-        bar = ttk.Scrollbar(self, orient='vertical', command=self.canvas.yview)
+        self.bar = ttk.Scrollbar(self, orient='vertical', command=self.canvas.yview)
         self.inner = ttk.Frame(self.canvas, padding=(12, 4, 16, 12))
-        window = self.canvas.create_window((0, 0), window=self.inner, anchor='nw')
-        self.canvas.configure(yscrollcommand=bar.set)
-        self.inner.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox('all')))
-        self.canvas.bind('<Configure>', lambda e: self.canvas.itemconfigure(window, width=e.width))
+        self.window = self.canvas.create_window((0, 0), window=self.inner, anchor='nw')
+        self.canvas.configure(yscrollcommand=self.bar.set)
+        self.inner.bind('<Configure>', self._layout)
+        self.canvas.bind('<Configure>', self._layout)
         self.canvas.pack(side='left', fill='both', expand=True)
-        bar.pack(side='right', fill='y')
         self.bind('<Enter>', lambda e: self._wheel(True))
         self.bind('<Leave>', lambda e: self._wheel(False))
+
+    def _layout(self, event=None):
+        # The content always fills the visible area (so no bare canvas shows below it);
+        # the scrollbar appears only when the content is taller than the area.
+        need, have, width = self.inner.winfo_reqheight(), self.canvas.winfo_height(), self.canvas.winfo_width()
+        self.canvas.itemconfigure(self.window, width=width, height=max(need, have))
+        self.canvas.configure(scrollregion=(0, 0, width, max(need, have)))
+        if need > have and not self.bar.winfo_ismapped():
+            self.bar.pack(side='right', fill='y', before=self.canvas)
+        elif need <= have and self.bar.winfo_ismapped():
+            self.bar.pack_forget()
+            self.canvas.yview_moveto(0)
 
     def _wheel(self, on):
         if not on:
@@ -301,11 +312,11 @@ class Panel:
         for c in range(1, 5):
             steps.columnconfigure(c, weight=1, uniform='step')
         self.run_button = ttk.Button(steps, text='Run all steps', default='active', command=lambda: self.run(3))
-        self.run_button.grid(row=0, column=0, rowspan=2, sticky='ns', padx=(0, 12))
+        self.run_button.grid(row=0, column=0, sticky='n', padx=(0, 12))
         self.root.bind('<Return>', lambda e: self.run(3))
         self.step_buttons, self.step_labels = [], []
-        for i, name in enumerate(wf.STEP_LABELS):
-            button = ttk.Button(steps, text='%d  %s' % (i + 1, name), command=lambda i=i: self.run(i))
+        for i, name in enumerate(wf.STEP_BUTTONS):
+            button = ttk.Button(steps, text='%d · %s' % (i + 1, name), command=lambda i=i: self.run(i))
             button.grid(row=0, column=i + 1, sticky='ew', padx=3)
             status = ttk.Label(steps, font=self.small, anchor='center')
             status.grid(row=1, column=i + 1, sticky='ew', padx=3, pady=(4, 0))
