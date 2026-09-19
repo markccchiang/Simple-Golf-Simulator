@@ -14,11 +14,19 @@ A physics-based golf swing and ball trajectory simulator with an interactive GUI
 
 ## Installation
 
+With [uv](https://docs.astral.sh/uv/) (recommended), which installs Python 3.12 (including `tkinter`) and all dependencies into `.venv`:
+
+```bash
+uv sync
+```
+
+Or with pip:
+
 ```bash
 pip install matplotlib numpy
 ```
 
-On some Linux systems, `tkinter` may need to be installed separately:
+With pip, on some Linux systems, `tkinter` may need to be installed separately:
 
 ```bash
 # Debian/Ubuntu
@@ -31,7 +39,7 @@ sudo dnf install python3-tkinter
 ## Getting Started
 
 ```bash
-python Main.py
+uv run Main.py        # or: python Main.py
 ```
 
 ## Features
@@ -71,10 +79,12 @@ The full technical report (two-rod swing model, aerodynamic equations, simulatio
 To build:
 
 ```bash
-pip install sphinx sphinx-rtd-theme
+uv sync --group docs
 cd docs
-sphinx-build -b html . _build/html
+uv run sphinx-build -b html . _build/html
 ```
+
+(Or with pip: `pip install sphinx sphinx-rtd-theme`, then run `sphinx-build` the same way.)
 
 Then open `docs/_build/html/index.html` in your browser.
 

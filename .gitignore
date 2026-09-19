@@ -7,3 +7,4 @@ __pycache__/
 *.eps
 docs/_build/
 CLAUDE.md
+.venv/

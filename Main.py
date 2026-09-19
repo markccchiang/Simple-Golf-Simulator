@@ -1,6 +1,16 @@
 #!/usr/bin/env python
+import glob
 import os
 import sys
+
+# In a venv (e.g. uv), Tcl searches for init.tcl next to the venv's python
+# symlink instead of the base install; point it at the base install.
+if sys.prefix != sys.base_prefix and 'TCL_LIBRARY' not in os.environ:
+   for tcl_dir in sorted(glob.glob(os.path.join(sys.base_prefix, 'lib', 'tcl[89].*')), reverse=True):
+       if os.path.isfile(os.path.join(tcl_dir, 'init.tcl')):
+           os.environ['TCL_LIBRARY'] = tcl_dir
+           break
+
 from tkinter import *
 from tkinter import ttk
 

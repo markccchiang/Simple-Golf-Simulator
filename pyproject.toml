@@ -1,0 +1,21 @@
+[project]
+name = "simple-golf-simulator"
+version = "1.0"
+description = "A physics-based golf swing and ball trajectory simulator with a Tkinter GUI"
+readme = "README.md"
+license = "ISC"
+authors = [{ name = "Cheng-Chin Chiang" }]
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib",
+    "numpy",
+]
+
+[dependency-groups]
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+]
+
+[tool.uv]
+package = false
