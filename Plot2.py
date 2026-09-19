@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 from tkinter import *
-from tkinter import messagebox
 
 import numpy as np
 from math import *
 import matplotlib.pyplot as plt
 import AppFunc2 as func
 import BasicFunc as base
+import UIFunc as ui
+
+LAUNCH_HINT = ('Items 40 and 41 (launch speed and elevation angle) are not set yet. '
+               'Click "Calculate launch speed and elevation angle from impact" first.')
 
 def _set_entry(entry, value):
     """Update a ttk Entry field (handles readonly state)."""
@@ -33,34 +36,29 @@ def initial(entries):
     #
     # Load global values from UI panel
     # 
-    ball_mass    = float(entries['ball_mass'].get())
-    ball_diameter= float(entries['ball_diameter'].get())
-    COR          = float(entries['COR'].get())
-    C_D          = float(entries['C_D'].get())
-    C_L          = float(entries['C_L'].get())
-    rho_air      = float(entries['rho_air'].get())
-    v_wind       = float(entries['v_wind'].get())
-    wind_theta   = float(entries['wind_theta'].get())
-    wind_phi     = float(entries['wind_phi'].get())
-    ball_U       = float(entries['ball_U'].get())
-    ball_theta   = float(entries['ball_theta'].get())
-    ball_phi     = float(entries['ball_phi'].get())
-    ball_w_theta = float(entries['ball_w_theta'].get())
-    ball_w_phi   = float(entries['ball_w_phi'].get())
-    Altitude     = float(entries['Altitude'].get())
+    ball_mass    = ui.get_float(entries, 'ball_mass')
+    ball_diameter= ui.get_float(entries, 'ball_diameter')
+    COR          = ui.get_float(entries, 'COR')
+    C_D          = ui.get_float(entries, 'C_D')
+    C_L          = ui.get_float(entries, 'C_L')
+    rho_air      = ui.get_float(entries, 'rho_air')
+    v_wind       = ui.get_float(entries, 'v_wind')
+    wind_theta   = ui.get_float(entries, 'wind_theta')
+    wind_phi     = ui.get_float(entries, 'wind_phi')
+    ball_U       = ui.require_result(entries, 'ball_U', LAUNCH_HINT)
+    ball_theta   = ui.require_result(entries, 'ball_theta', LAUNCH_HINT)
+    ball_phi     = ui.get_float(entries, 'ball_phi')
+    ball_w_theta = ui.get_float(entries, 'ball_w_theta')
+    ball_w_phi   = ui.get_float(entries, 'ball_w_phi')
+    Altitude     = ui.get_float(entries, 'Altitude')
     Figure1      = str(entries['Figure1'].get())
     Figure2      = str(entries['Figure2'].get())
     Figure3      = str(entries['Figure3'].get())
     Figure4      = str(entries['Figure4'].get())
 
+@ui.validate_inputs
 def Plot(entries):
-    try:
-        _Plot(entries)
-    except ValueError:
-        messagebox.showerror("Input Error",
-            "Invalid input: please ensure all fields contain numeric values.")
-    except Exception as e:
-        messagebox.showerror("Error", str(e))
+    _Plot(entries)
 
 def _Plot(entries):
     #

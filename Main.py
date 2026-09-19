@@ -90,6 +90,7 @@ if __name__ == '__main__':
        ent = ttk.Entry(parent, width=entry_width)
        ent.insert(0, default)
        ent.grid(row=row, column=1, sticky='e', padx=pad_x, pady=pad_y)
+       ent.label = text.lstrip('*').rstrip(':')  # named in input error messages
        entries[key] = ent
        return ent
 

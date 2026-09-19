@@ -1,24 +1,22 @@
 #!/usr/bin/env python
 from tkinter import *
-from tkinter import messagebox
 
 import matplotlib.pyplot as plt
 import AppFunc as func
 import BasicFunc as base
+import UIFunc as ui
 
 PI = 3.141592653589793
 
-def _validate_inputs(func_to_wrap):
-    """Wrap a UI callback to catch invalid input and show an error dialog."""
-    def wrapper(entries):
-        try:
-            return func_to_wrap(entries)
-        except ValueError as e:
-            messagebox.showerror("Input Error",
-                "Invalid input: please ensure all fields contain numeric values.")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
-    return wrapper
+SWING_HINT = ('Items 26 and 28 (clubhead impact velocity and angle) are not set yet. '
+              'Click "Simulate / Plot Golf Swing" first.')
+
+def _check_swing_geometry(R_S, R_A):
+    """Reject shoulder/arm dimensions the two-rod model cannot represent."""
+    if not 0.0 < R_S < R_A:
+        raise ui.UserFacingError(
+            "The shoulder radius (item 3) must be greater than 0 and smaller "
+            "than the arm length (item 4).")
 
 def _set_entry(entry, value):
     """Update a ttk Entry field (handles readonly state)."""
@@ -33,25 +31,25 @@ def _set_entry(entry, value):
     except AttributeError:
         pass
 
-@_validate_inputs
+@ui.validate_inputs
 def get_ball_velocity(entries):
     #
     # Calculate ball velocity
     #
-    tmp_M_C_head = float(entries['M_C_head'].get()) # mass of the club head (kg)
-    ball_mass    = float(entries['ball_mass'].get()) # (degree) 
-    COR          = float(entries['COR'].get()) # (degree) 
-    VC           = float(entries['VC'].get())
+    tmp_M_C_head = ui.get_float(entries, 'M_C_head') # mass of the club head (kg)
+    ball_mass    = ui.get_float(entries, 'ball_mass') # (degree) 
+    COR          = ui.get_float(entries, 'COR') # (degree) 
+    VC           = ui.require_result(entries, 'VC', SWING_HINT)
     ans_ball_velocity = base.Ball_velocity(VC, tmp_M_C_head, ball_mass, COR)
     tmp_ans_ball_velocity = ("%5.2f" % ans_ball_velocity).strip()
     _set_entry(entries['ball_U'], tmp_ans_ball_velocity)
     #
     # Calculate the elevation angle of ball
     #
-    tmp_theta_final   = float(entries['theta_final'].get()) # (degree) 
-    tmp_beta_final    = float(entries['beta_final'].get()) # (degree) 
-    tmp_VC_angle      = float(entries['VC_angle'].get()) # (degree) 
-    tmp_clubhead_loft = float(entries['clubhead_loft'].get()) # (degree) 
+    tmp_theta_final   = ui.get_float(entries, 'theta_final') # (degree) 
+    tmp_beta_final    = ui.get_float(entries, 'beta_final') # (degree) 
+    tmp_VC_angle      = ui.require_result(entries, 'VC_angle', SWING_HINT) # (degree)
+    tmp_clubhead_loft = ui.get_float(entries, 'clubhead_loft') # (degree) 
     tmp_ans_elevation = tmp_theta_final + tmp_beta_final + tmp_clubhead_loft + tmp_VC_angle
     tmp2_ans_elevation= ("%5.2f" % tmp_ans_elevation).strip()
     _set_entry(entries['ball_theta'], tmp2_ans_elevation)
@@ -59,27 +57,28 @@ def get_ball_velocity(entries):
 def _read_swing_params(entries):
     """Read swing parameters from UI entries."""
     Sex        = str(entries['Gender'].get())
-    Weight     = float(entries['Weight'].get())
-    R_S        = float(entries['R_S'].get())
-    R_A        = float(entries['R_A'].get())
-    M_C_head   = float(entries['M_C_head'].get())
-    M_C_shaft  = float(entries['M_C_shaft'].get())
-    L_C_head   = float(entries['L_C_head'].get())
-    L_C_shaft  = float(entries['L_C_shaft'].get())
-    phi        = float(entries['phi'].get())
-    theta      = float(entries['theta'].get())
-    theta_final= float(entries['theta_final'].get())
-    beta       = float(entries['beta'].get())
-    beta_final = float(entries['beta_final'].get())
-    a_x        = float(entries['a_x'].get())
-    a_y        = float(entries['a_y'].get())
+    Weight     = ui.get_float(entries, 'Weight')
+    R_S        = ui.get_float(entries, 'R_S')
+    R_A        = ui.get_float(entries, 'R_A')
+    _check_swing_geometry(R_S, R_A)
+    M_C_head   = ui.get_float(entries, 'M_C_head')
+    M_C_shaft  = ui.get_float(entries, 'M_C_shaft')
+    L_C_head   = ui.get_float(entries, 'L_C_head')
+    L_C_shaft  = ui.get_float(entries, 'L_C_shaft')
+    phi        = ui.get_float(entries, 'phi')
+    theta      = ui.get_float(entries, 'theta')
+    theta_final= ui.get_float(entries, 'theta_final')
+    beta       = ui.get_float(entries, 'beta')
+    beta_final = ui.get_float(entries, 'beta_final')
+    a_x        = ui.get_float(entries, 'a_x')
+    a_y        = ui.get_float(entries, 'a_y')
     Type       = str(entries['Type'].get())
-    Q_alpha    = float(entries['Q_alpha'].get())
-    tau_Q_alpha= float(entries['tau_Q_alpha'].get())
-    Set_theta  = float(entries['set_theta'].get())
-    tau_Q_beta = float(entries['tau_Q_beta'].get())
-    Q_beta_min = float(entries['Q_beta_min'].get())
-    Q_beta_max = float(entries['Q_beta_max'].get())
+    Q_alpha    = ui.get_float(entries, 'Q_alpha')
+    tau_Q_alpha= ui.get_float(entries, 'tau_Q_alpha')
+    Set_theta  = ui.get_float(entries, 'set_theta')
+    tau_Q_beta = ui.get_float(entries, 'tau_Q_beta')
+    Q_beta_min = ui.get_float(entries, 'Q_beta_min')
+    Q_beta_max = ui.get_float(entries, 'Q_beta_max')
     Method     = str(entries['Method'].get())
     return dict(
         Sex=Sex, Weight=Weight, R_S=R_S, R_A=R_A,
@@ -140,7 +139,7 @@ def _plot_optimization(entries, array_Q_beta, array_beta, k, tmp_set_Q_beta, Q_b
     plt.plot(array_Q_beta2, array_dQ_beta, 'r.', markersize=10, linewidth=1)
     plt.show()
 
-@_validate_inputs
+@ui.validate_inputs
 def Optimize_Q_beta(entries):
     p = _read_swing_params(entries)
     beta_final = p['beta_final']
@@ -197,7 +196,7 @@ def Optimize_Q_beta(entries):
     #
     _plot_optimization(entries, array_Q_beta, array_beta, k, tmp_set_Q_beta, Q_beta_min, Q_beta_max)
 
-@_validate_inputs
+@ui.validate_inputs
 def Optimize_Q_beta_2(entries):
     p = _read_swing_params(entries)
     beta_final = p['beta_final']
@@ -242,34 +241,37 @@ def Optimize_Q_beta_2(entries):
     #
     _plot_optimization(entries, array_Q_beta, array_beta, k, tmp_set_Q_beta, Q_beta_min, Q_beta_max)
 
-@_validate_inputs
+@ui.validate_inputs
 def Plot(entries):
     #
     # Set initial values
     #
     Sex        = str(entries['Gender'].get())
-    Weight     = float(entries['Weight'].get()) # golfer's weight (kg)
-    R_S        = float(entries['R_S'].get()) # shoulder length (m)
-    R_A        = float(entries['R_A'].get()) # arm length (m)
-    M_C_head   = float(entries['M_C_head'].get()) # mass of the club head (kg)
-    M_C_shaft  = float(entries['M_C_shaft'].get()) # mass of the club shaft (kg)
-    L_C_head   = float(entries['L_C_head'].get()) # club head length (m)
-    L_C_shaft  = float(entries['L_C_shaft'].get()) # club shaft length (m)
-    phi        = float(entries['phi'].get()) # swing plane angle (degree)
-    theta      = float(entries['theta'].get()) # (degree) 
-    theta_final= float(entries['theta_final'].get()) # (degree) 
-    beta       = float(entries['beta'].get()) # (degree) 
-    beta_final = float(entries['beta_final'].get()) # (degree) 
-    a_x        = float(entries['a_x'].get()) # arm acceleration in horizontal direction (m/sec^2)
-    a_y        = float(entries['a_y'].get()) # arm acceleration in vertical direction (m/sec^2)
+    Weight     = ui.get_float(entries, 'Weight') # golfer's weight (kg)
+    R_S        = ui.get_float(entries, 'R_S') # shoulder length (m)
+    R_A        = ui.get_float(entries, 'R_A') # arm length (m)
+    _check_swing_geometry(R_S, R_A)
+    M_C_head   = ui.get_float(entries, 'M_C_head') # mass of the club head (kg)
+    M_C_shaft  = ui.get_float(entries, 'M_C_shaft') # mass of the club shaft (kg)
+    L_C_head   = ui.get_float(entries, 'L_C_head') # club head length (m)
+    L_C_shaft  = ui.get_float(entries, 'L_C_shaft') # club shaft length (m)
+    phi        = ui.get_float(entries, 'phi') # swing plane angle (degree)
+    theta      = ui.get_float(entries, 'theta') # (degree) 
+    theta_final= ui.get_float(entries, 'theta_final') # (degree) 
+    beta       = ui.get_float(entries, 'beta') # (degree) 
+    beta_final = ui.get_float(entries, 'beta_final') # (degree) 
+    a_x        = ui.get_float(entries, 'a_x') # arm acceleration in horizontal direction (m/sec^2)
+    a_y        = ui.get_float(entries, 'a_y') # arm acceleration in vertical direction (m/sec^2)
     Type       = str(entries['Type'].get())
-    Q_alpha    = float(entries['Q_alpha'].get()) # (N-m)
-    tau_Q_alpha= float(entries['tau_Q_alpha'].get()) # (sec)
-    Q_beta     = float(entries['Q_beta'].get()) # (N-m)
-    Set_theta  = float(entries['set_theta'].get()) # (degree) 
-    tau_Q_beta = float(entries['tau_Q_beta'].get()) # (sec)
-    Q_beta_min = float(entries['Q_beta_min'].get()) # (N-m)
-    Q_beta_max = float(entries['Q_beta_max'].get()) # (N-m)
+    Q_alpha    = ui.get_float(entries, 'Q_alpha') # (N-m)
+    tau_Q_alpha= ui.get_float(entries, 'tau_Q_alpha') # (sec)
+    Q_beta     = ui.require_result(entries, 'Q_beta',
+                                   'Item 19 (wrist-cock torque) is not set yet. '
+                                   'Click "Optimize wrist-cock torque" first.') # (N-m)
+    Set_theta  = ui.get_float(entries, 'set_theta') # (degree) 
+    tau_Q_beta = ui.get_float(entries, 'tau_Q_beta') # (sec)
+    Q_beta_min = ui.get_float(entries, 'Q_beta_min') # (N-m)
+    Q_beta_max = ui.get_float(entries, 'Q_beta_max') # (N-m)
     Method     = str(entries['Method'].get())
     alpha      = 0.0 # (degree)
     alpha_dot  = 0.0 # (degree/sec)
