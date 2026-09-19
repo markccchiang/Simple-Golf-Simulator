@@ -67,6 +67,18 @@ def test_all_solutions_agree_at_impact(swing_type):
     assert max(VC) - min(VC) < 0.1  # m/s
 
 
+@pytest.mark.parametrize('swing_type', ['Type I', 'Type II'])
+def test_acceleration_lines_up_with_its_time(swing_type):
+    # Previously each acceleration was reported one time step late.
+    r = swing(method='Solution 4', swing_type=swing_type)
+    t, alpha_dot, alpha_ddot = r[10], r[16], r[18]
+    beta_dot, beta_ddot = r[17], r[19]
+    for j in (5, len(t) // 2):  # early (arm torque still rising) and mid-swing
+        dt = t[j+1] - t[j-1]
+        assert alpha_ddot[j] == pytest.approx((alpha_dot[j+1] - alpha_dot[j-1]) / dt, rel=1e-3)
+        assert beta_ddot[j] == pytest.approx((beta_dot[j+1] - beta_dot[j-1]) / dt, rel=1e-3)
+
+
 def test_swing_longer_than_one_second_does_not_raise():
     # Previously raised IndexError: rod arrays were sized for at most 1 s of swing.
     t = swing(Q_alpha=1.0, Q_beta=-1.0, phi=10.0)[10]

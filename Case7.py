@@ -98,7 +98,6 @@ for i in range(0, set_grid_sections*2+1, 1):
      array_set_C_L.append(set_C_L)
      array_distance.append(distance)
 plt.figure(3)
-ax = fig.add_subplot(111)
 plt.xlabel(r'$C_D$', fontweight='bold', fontsize=25)
 plt.ylabel(r'$C_L$', fontweight='bold', fontsize=25)
 plt.xticks(fontsize=20)

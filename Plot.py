@@ -467,7 +467,7 @@ def Plot(entries):
       plt.figure(3)
       plt.clf()
       plt.xlabel('Time (sec)')
-      plt.ylabel('Anglular velocity (degree/sec)')
+      plt.ylabel('Angular velocity (degree/sec)')
       plt.plot(show_t[:step], show_alpha_dot[:step]*180.0/PI, 'r-', \
                label=r"$\dot{\alpha}$", markersize=10, linewidth=5)
       plt.plot(show_t[:step], show_beta_dot[:step]*180.0/PI, 'b-', \
@@ -478,7 +478,7 @@ def Plot(entries):
       plt.figure(4)
       plt.clf()
       plt.xlabel('Time (sec)')
-      plt.ylabel('Anglular acceleration (degree/sec$^2$)')
+      plt.ylabel('Angular acceleration (degree/sec$^2$)')
       plt.plot(show_t[:step], show_alpha_ddot[:step]*180.0/PI, 'r-', \
                label=r"$\ddot{\alpha}$", markersize=10, linewidth=5)
       plt.plot(show_t[:step], show_beta_ddot[:step]*180.0/PI, 'b-', \

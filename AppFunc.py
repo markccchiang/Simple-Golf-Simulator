@@ -233,6 +233,12 @@ def Tracking(Weight, R_S, R_A, \
         raise RuntimeError('Swing did not reach the impact arm angle within %.1f sec; '
                            'increase the arm torque.' % (elements*h))
     #
+    # The solvers store the accelerations at t_i in index i+1, where they seed the next step;
+    # shift them back so each acceleration lines up with its time
+    #
+    show_alpha_ddot[:step+1] = show_alpha_ddot[1:step+2].copy()
+    show_beta_ddot[:step+1] = show_beta_ddot[1:step+2].copy()
+    #
     # The last step overshoots the impact arm angle; interpolate it back to the exact impact
     #
     fraction = (show_theta[step-1] - theta_final*PI/180.0)/(show_theta[step-1] - show_theta[step])
