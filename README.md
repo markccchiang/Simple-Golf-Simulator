@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="assets/logo.png" alt="Simple Golf Simulator logo" width="160">
+  <img src="assets/banner.png" alt="Simple Golf Simulator" width="720">
 </p>
-
-# Simple Golf Simulator
 
 A physics-based golf swing and ball trajectory simulator with an interactive GUI built using Tkinter and Matplotlib.
 
@@ -124,7 +122,7 @@ Then open `docs/_build/html/index.html` in your browser.
 | `src/UIFunc.py` | Shared input reading, error dialogs and plot handling |
 | `examples/Case1.py` - `examples/Case10.py` | Standalone example cases, e.g. `uv run examples/Case1.py`; figures are saved as `.eps` in the current directory |
 | `tests/` | pytest suite |
-| `assets/` | Logo and screenshot |
+| `assets/` | Logo, banner and screenshot |
 | `pyproject.toml`, `uv.lock` | Dependencies (uv) |
 
 ## License

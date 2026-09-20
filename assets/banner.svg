@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1580 420" width="1580" height="420" role="img" aria-labelledby="title">
+  <title id="title">Simple Golf Simulator — swing mechanics to ball flight</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0e4a36"/>
+      <stop offset="1" stop-color="#082c20"/>
+    </linearGradient>
+    <clipPath id="below-shoulders">
+      <rect x="0" y="192" width="512" height="320"/>
+    </clipPath>
+  </defs>
+
+  <rect width="1580" height="420" fill="#0e1013"/>
+  <g transform="translate(70 46) scale(0.64)">
+<!-- Badge -->
+  <rect width="512" height="512" rx="104" fill="url(#bg)"/>
+
+  <g transform="translate(0 18)">
+  <!-- Ground -->
+  <line x1="56" y1="372" x2="456" y2="372" stroke="#7fd1a8" stroke-width="6" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- Ball flight: one dot per time step, steeper descent from drag -->
+  <path d="M 212 358 C 272 150 372 40 432 364" fill="none" stroke="#f5c451" stroke-width="10"
+        stroke-dasharray="0 22" stroke-linecap="round"/>
+
+  <!-- Flag -->
+  <line x1="436" y1="372" x2="436" y2="290" stroke="#f4f1e8" stroke-width="5" stroke-linecap="round"/>
+  <path d="M 438 290 L 472 303 L 438 316 Z" fill="#e8553d"/>
+
+  <!-- Clubhead swing arc (radius = arm + club about the hub) -->
+  <path d="M 34 292 A 193 193 0 0 0 110 347" fill="none" stroke="#7fd1a8" stroke-width="5"
+        stroke-dasharray="2 14" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- Golfer at impact (face-on, target to the right) -->
+  <g fill="none" stroke="#f4f1e8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Legs: trail knee kicking in, lead leg firm -->
+    <polyline points="184,244 186,302 152,360" stroke-width="22"/>
+    <polyline points="204,244 222,300 230,360" stroke-width="22"/>
+    <!-- Torso: trail shoulder lower -->
+    <polygon points="152,172 210,158 212,244 176,246" fill="#f4f1e8" stroke-width="16"/>
+  </g>
+  <circle cx="176" cy="126" r="21" fill="#f4f1e8"/>
+
+  <!-- Arms and club, outlined in the background color below the shoulders -->
+  <g clip-path="url(#below-shoulders)" fill="none" stroke="#0b3a2b" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="158,178 180,226 202,264" stroke-width="25"/>
+    <line x1="208" y1="166" x2="204" y2="264" stroke-width="25"/>
+    <line x1="203" y1="266" x2="192" y2="350" stroke-width="18"/>
+  </g>
+  <g fill="none" stroke="#f4f1e8" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="158,178 180,226 202,264" stroke-width="17"/>
+    <line x1="208" y1="166" x2="204" y2="264" stroke-width="17"/>
+    <line x1="203" y1="266" x2="192" y2="350" stroke-width="8"/>
+    <line x1="182" y1="357" x2="198" y2="359" stroke-width="13"/>
+  </g>
+
+  <!-- Ball -->
+  <circle cx="213" cy="359" r="11" fill="#ffffff" stroke="#0b3a2b" stroke-width="4"/>
+  </g>
+  </g>
+  <text x="430" y="228" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="104" font-weight="700" letter-spacing="-2"><tspan fill="#f4f1e8">Simple </tspan><tspan fill="#e8553d">Golf</tspan><tspan fill="#f4f1e8"> Simulator</tspan></text>
+  <text x="434" y="291" fill="#9aa3ad" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="36" font-weight="500" letter-spacing="4">SWING MECHANICS → BALL FLIGHT</text>
+</svg>
