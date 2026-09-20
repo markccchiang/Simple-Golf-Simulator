@@ -2,7 +2,7 @@
 
 ## v1.0
 
-The first tagged release. The 2016 simulator is brought up to date: a redesigned panel, a fourth-order solver, one-command setup, and tests. The swing and ball-flight models are unchanged.
+The second tagged release. The 2016 simulator is brought up to date: a redesigned panel, a fourth-order solver, one-command setup, and tests. The swing and ball-flight models are unchanged.
 
 ### Highlights
 
