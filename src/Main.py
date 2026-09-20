@@ -125,8 +125,8 @@ def palette(root):
                 muted='#5f6368', ok='#1d7a4f', stale='#8a5a00', error='#c0392b', manual='#2456a8')
 
 def darken_toolbar(toolbar, background, text_color):
-    """Give a plot tab's toolbar the window's colors, and rebuild its icons in the text color
-    (matplotlib only recolors them when the button background is dark, which Tk's buttons are not)."""
+    """Give a plot tab's toolbar the window's colors. Where Tk honours the button colour, the icons
+    are rebuilt in the text colour too (matplotlib only does that when the button background is dark)."""
     lighter = '#%02x%02x%02x' % tuple(int(255*(c + (1 - c)*0.15)) for c in to_rgb(background))
     for widget in [toolbar] + list(toolbar.winfo_children()):
         for options in ({'background': background, 'foreground': text_color},
@@ -141,6 +141,8 @@ def darken_toolbar(toolbar, background, text_color):
             button.configure(activebackground=lighter, selectcolor=lighter)
         except TclError:
             pass
+        if sys.platform == 'darwin':
+            continue # aqua draws its buttons light whatever we ask, so keep the dark icons
         try:
             toolbar._set_image_for_button(button) # private, but the only way to recolor the icons
         except (AttributeError, TclError):

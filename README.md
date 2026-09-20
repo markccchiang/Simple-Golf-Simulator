@@ -6,6 +6,12 @@
 
 A physics-based golf swing and ball trajectory simulator with an interactive GUI built using Tkinter and Matplotlib.
 
+<p align="center">
+  <img src="assets/screenshot.png" alt="The main panel: inputs on the left, the four run steps, results cards and plot tabs on the right" width="900">
+</p>
+
+The panel keeps the inputs on the left, grouped in three tabs, and the run steps, results and plots on the right. Values that a step computes -- the wrist-cock torque and the launch speed and elevation -- are marked *auto* and can also be typed in, which skips the step that would compute them.
+
 ## Requirements
 
 - **Python 3.12+** is recommended for best compatibility
@@ -68,11 +74,13 @@ The ball flight model includes drag, lift, spin (Magnus effect), and wind. Confi
 
 ### Plots
 
-**Swing plots:**
-Tracks, angles, angular velocities, angular accelerations, clubhead velocity, torques, arm length, and moment of inertia.
+Plots are drawn in tabs inside the window, each with a toolbar to pan, zoom and save. Choose which ones to draw under **Plots to show**; only the visible tab is drawn, and in a dark desktop appearance the plots are drawn to match the window.
 
-**Ball trajectory plots:**
-X-Z (elevation), X-Y (horizontal), Y-Z (lateral), and 3D flight path.
+**Swing plots:**
+Swing tracks, angles, angular velocities, angular accelerations, clubhead speed, torques, arm length, 1st and 2nd moments, and the wrist-torque search.
+
+**Ball flight plots:**
+Side view (X-Z), top view (X-Y), rear view (Y-Z), and the 3D flight path.
 
 ## Running Tests
 
@@ -111,9 +119,10 @@ Then open `docs/_build/html/index.html` in your browser.
 | `src/Plot.py` | Swing visualization |
 | `src/Plot2.py` | Ball trajectory visualization |
 | `src/Workflow.py` | Step states, stale results and results-card text for the panel |
-| `src/UIFunc.py` | Shared input reading, error dialogs and plot windows |
+| `src/UIFunc.py` | Shared input reading, error dialogs and plot handling |
 | `examples/Case1.py` - `examples/Case10.py` | Standalone example cases, e.g. `uv run examples/Case1.py`; figures are saved as `.eps` in the current directory |
 | `tests/` | pytest suite |
+| `assets/` | Logo and screenshot |
 | `pyproject.toml`, `uv.lock` | Dependencies (uv) |
 
 ## License
