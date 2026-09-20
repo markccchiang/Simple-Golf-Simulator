@@ -15,7 +15,11 @@ import tkinter.font as tkfont
 from tkinter import BooleanVar, Canvas, PhotoImage, StringVar, TclError, Tk
 from tkinter import ttk
 
+import matplotlib
+matplotlib.use('Agg') # the panel draws the figures itself, in its plot tabs
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from matplotlib.colors import to_rgb
 import Plot as pl
 import Plot2 as pl2
 import UIFunc as ui
@@ -91,13 +95,16 @@ HELP = {
 ADVANCED_HINT = {'swing': 'rise times, accelerations, impact arm angle', 'ball': 'air density, landing height'}
 
 #
-# Plots, shown in their own windows: (key, label, on by default)
+# Plots: (key, label, on by default, figure number used by Plot.py / Plot2.py)
 #
-SWING_PLOTS = (('Fig1', 'Swing tracks', True), ('Fig2', 'Angles', False), ('Fig3', 'Angular velocities', False),
-               ('Fig4', 'Angular accelerations', False), ('Fig5', 'Clubhead speed', False), ('Fig6', 'Torques', False),
-               ('Fig8', 'Arm length', False), ('Fig7', '1st and 2nd moments', False), ('Fig0', 'Wrist-torque search', False))
-BALL_PLOTS = (('Figure1', 'Side view (X-Z)', True), ('Figure2', 'Top view (X-Y)', False),
-              ('Figure3', 'Rear view (Y-Z)', False), ('Figure4', '3D', False))
+SWING_PLOTS = (('Fig1', 'Swing tracks', True, 1), ('Fig2', 'Angles', True, 2), ('Fig3', 'Angular velocities', False, 3),
+               ('Fig4', 'Angular accelerations', False, 4), ('Fig5', 'Clubhead speed', True, 5), ('Fig6', 'Torques', False, 6),
+               ('Fig8', 'Arm length', False, 8), ('Fig7', '1st and 2nd moments', False, 7),
+               ('Fig0', 'Wrist-torque search', False, 0))
+BALL_PLOTS = (('Figure1', 'Side view (X-Z)', True, 9), ('Figure2', 'Top view (X-Y)', False, 10),
+              ('Figure3', 'Rear view (Y-Z)', False, 11), ('Figure4', '3D', False, 12))
+
+PLOT_LABELS = {number: label for key, label, on, number in SWING_PLOTS + BALL_PLOTS}
 
 RESULT_KEYS = ('VC', 'error_VC', 'VC_angle', 'error_VC_angle', 'X_final', 'Y_final', 'Distance', 'Apex', 'Flight_time')
 
@@ -110,10 +117,86 @@ def palette(root):
         r, g, b = root.winfo_rgb('systemWindowBackgroundColor')
     except TclError:
         r, g, b = root.winfo_rgb(ttk.Style().lookup('TFrame', 'background') or 'white')
-    dark = (0.299*r + 0.587*g + 0.114*b) / 65535 < 0.5
-    if dark:
-        return dict(muted='#a3a8b0', ok='#6fcf97', stale='#f2c14e', error='#ff8a78', manual='#8fb4ff')
-    return dict(muted='#5f6368', ok='#1d7a4f', stale='#8a5a00', error='#c0392b', manual='#2456a8')
+    background = '#%02x%02x%02x' % (r >> 8, g >> 8, b >> 8)
+    if (0.299*r + 0.587*g + 0.114*b) / 65535 < 0.5:
+        return dict(dark=True, background=background,
+                    muted='#a3a8b0', ok='#6fcf97', stale='#f2c14e', error='#ff8a78', manual='#8fb4ff')
+    return dict(dark=False, background=background,
+                muted='#5f6368', ok='#1d7a4f', stale='#8a5a00', error='#c0392b', manual='#2456a8')
+
+def darken_toolbar(toolbar, background, text_color):
+    """Give a plot tab's toolbar the window's colors, and rebuild its icons in the text color
+    (matplotlib only recolors them when the button background is dark, which Tk's buttons are not)."""
+    lighter = '#%02x%02x%02x' % tuple(int(255*(c + (1 - c)*0.15)) for c in to_rgb(background))
+    for widget in [toolbar] + list(toolbar.winfo_children()):
+        for options in ({'background': background, 'foreground': text_color},
+                        {'background': background}):
+            try:
+                widget.configure(**options)
+                break
+            except TclError:
+                continue
+    for button in getattr(toolbar, '_buttons', {}).values():
+        try:
+            button.configure(activebackground=lighter, selectcolor=lighter)
+        except TclError:
+            pass
+        try:
+            toolbar._set_image_for_button(button) # private, but the only way to recolor the icons
+        except (AttributeError, TclError):
+            pass
+
+def darken_figure(figure, background, text_color, line_color):
+    """Restyle a figure for a dark window: dark paper, light labels, and light lines in place of
+    black ones. Only the panel's own figures are touched; saved files and the Case scripts keep
+    matplotlib's usual white figures."""
+    def relight(artist, get, set_to):
+        try:
+            rgb = to_rgb(get()) if get() is not None else None
+        except (ValueError, TypeError):
+            return # not a plain color (e.g. 'none' or an array)
+        if rgb is None:
+            return
+        if rgb == (0.0, 0.0, 0.0):
+            set_to(line_color) # black would vanish on a dark background
+        elif 0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2] < 0.35:
+            set_to(tuple(c + (1.0 - c)*0.45 for c in rgb)) # lighten dark colors (blue, green)
+
+    frame_color = tuple(0.5*(c + b) for c, b in zip(to_rgb(text_color), to_rgb(background))) # dimmer than the text
+    figure.patch.set_facecolor(background)
+    for ax in figure.axes:
+        ax.set_facecolor(background)
+        ax.tick_params(color=frame_color, which='both') # the tick marks; their labels below
+        for spine in ax.spines.values():
+            spine.set_color(frame_color)
+        # Labels and tick labels keep any colour the plot gave them (e.g. an axis coloured like its curve)
+        for label in (ax.xaxis.label, ax.yaxis.label, ax.title,
+                      getattr(ax, 'zaxis', None) and ax.zaxis.label):
+            if label is not None:
+                relight(label, label.get_color, label.set_color)
+        for label in ax.get_xticklabels() + ax.get_yticklabels() + list(getattr(ax, 'get_zticklabels', list)()):
+            relight(label, label.get_color, label.set_color)
+        zaxis = getattr(ax, 'zaxis', None)
+        for axis in (ax.xaxis, ax.yaxis, zaxis):
+            if axis is not None and hasattr(axis, 'set_pane_color'): # 3D axes
+                axis.set_pane_color((0, 0, 0, 0))
+        for line in ax.get_lines():
+            relight(line, line.get_color, line.set_color)
+            relight(line, line.get_markerfacecolor, line.set_markerfacecolor)
+            relight(line, line.get_markeredgecolor, line.set_markeredgecolor)
+        for gridline in ax.get_xgridlines() + ax.get_ygridlines():
+            gridline.set_color(text_color)
+            gridline.set_alpha(0.25)
+        for text in ax.texts:
+            relight(text, text.get_color, text.set_color)
+        legend = ax.get_legend()
+        if legend is not None:
+            legend.get_frame().set_facecolor(background)
+            legend.get_frame().set_edgecolor(text_color)
+            for text in legend.get_texts():
+                text.set_color(text_color)
+            for line in legend.get_lines():
+                relight(line, line.get_color, line.set_color)
 
 class ScrollFrame(ttk.Frame):
     """A frame whose content scrolls vertically when it is taller than the window."""
@@ -173,6 +256,7 @@ class Panel:
         self.active = None    # step running now
         self.message = None   # (text, kind) shown instead of the usual status line
         self.colors = palette(root)
+        ui.use_embedded_plots()
         base = tkfont.nametofont('TkDefaultFont')
         self.small = base.copy()
         self.small.configure(size=max(base.cget('size') - 1, 9))
@@ -346,18 +430,39 @@ class Panel:
             self.entries[key].var.trace_add('write', lambda *args: self.refresh())
 
         # Plots
-        plots = ttk.LabelFrame(right, text='Plots to show (each opens in its own window)', padding=12)
-        plots.grid(row=2, column=0, sticky='ew', pady=(6, 0))
+        right.rowconfigure(2, weight=1)
+        plots = ttk.Frame(right)
+        plots.grid(row=2, column=0, sticky='nsew', pady=(6, 0))
+        plots.columnconfigure(0, weight=1)
+        plots.rowconfigure(2, weight=1)
+        self.chooser_button = ttk.Button(plots, style='Toolbutton', command=self.toggle_chooser)
+        self.chooser_button.grid(row=0, column=0, sticky='w')
+        self.chooser = ttk.Frame(plots, padding=(0, 4, 0, 8))
+        self.chooser.grid(row=1, column=0, sticky='ew')
+        self.chooser.grid_remove()
+        self.chooser_open = False
         for column, (title, items) in enumerate((('Swing', SWING_PLOTS), ('Ball flight', BALL_PLOTS))):
-            plots.columnconfigure(column, weight=1)
-            box = ttk.Frame(plots)
+            self.chooser.columnconfigure(column, weight=1)
+            box = ttk.Frame(self.chooser)
             box.grid(row=0, column=column, sticky='nw')
             ttk.Label(box, text=title.upper(), font=self.small, foreground=self.colors['muted']).grid(
                 row=0, column=0, columnspan=2, sticky='w', pady=(0, 4))
-            for n, (key, label, on) in enumerate(items):
+            for n, (key, label, on, number) in enumerate(items):
                 var = BooleanVar(self.root, value=on)
                 self.entries[key] = var
+                var.trace_add('write', lambda *args: self.set_chooser_text())
                 ttk.Checkbutton(box, text=label, variable=var).grid(row=1 + n // 2, column=n % 2, sticky='w', padx=(0, 16), pady=1)
+        self.set_chooser_text()
+
+        self.plot_book = ttk.Notebook(plots)
+        self.plot_book.grid(row=2, column=0, sticky='nsew')
+        self.plot_book.bind('<<NotebookTabChanged>>', lambda e: self.draw_plot())
+        self.plot_tabs = {} # figure number -> {frame, canvas, figure, drawn}
+        self.placeholder_shown = True
+        self.no_plots = ttk.Frame(self.plot_book, padding=24)
+        ttk.Label(self.no_plots, foreground=self.colors['muted'],
+                  text='The plots you choose above appear here when their step runs.').pack(expand=True)
+        self.plot_book.add(self.no_plots, text='Plots')
 
     # --- Behavior -------------------------------------------------------------------------------
 
@@ -430,7 +535,69 @@ class Panel:
         finally:
             self.active = None
             self.running = False
+            self.sync_plots()
             self.refresh()
+
+    def set_chooser_text(self):
+        chosen = sum(1 for key, label, on, number in SWING_PLOTS + BALL_PLOTS if self.entries[key].get())
+        arrow = '▾' if getattr(self, 'chooser_open', False) else '▸'
+        self.chooser_button.configure(text='%s Plots to show  (%d of %d)' % (arrow, chosen, len(PLOT_LABELS)))
+
+    def toggle_chooser(self):
+        self.chooser_open = not self.chooser_open
+        if self.chooser_open:
+            self.chooser.grid()
+        else:
+            self.chooser.grid_remove()
+        self.set_chooser_text()
+
+    def sync_plots(self):
+        """Give every figure a tab, in figure order, and drop tabs whose figure is gone."""
+        showing = next((n for n, tab in self.plot_tabs.items() if str(tab['frame']) == self.plot_book.select()), None)
+        figures = {n: plt.figure(n) for n in plt.get_fignums()}
+        for n, tab in list(self.plot_tabs.items()):
+            if figures.get(n) is not tab['figure']:
+                self.plot_book.forget(tab['frame'])
+                tab['frame'].destroy()
+                del self.plot_tabs[n]
+        for position, n in enumerate(sorted(figures)):
+            if n in self.plot_tabs:
+                self.plot_tabs[n]['drawn'] = False
+                continue
+            frame = ttk.Frame(self.plot_book)
+            canvas = FigureCanvasTkAgg(figures[n], master=frame)
+            toolbar = NavigationToolbar2Tk(canvas, frame, pack_toolbar=False)
+            toolbar.update()
+            if self.colors['dark']:
+                darken_toolbar(toolbar, self.colors['background'], '#ecebe8')
+            toolbar.pack(side='bottom', fill='x') # packed first, so it keeps its height
+            canvas.get_tk_widget().pack(side='top', fill='both', expand=True)
+            self.plot_tabs[n] = {'frame': frame, 'canvas': canvas, 'figure': figures[n], 'drawn': False}
+            self.plot_book.insert(position, frame, text=PLOT_LABELS.get(n, 'Figure %d' % n))
+        if self.plot_tabs and self.placeholder_shown:
+            self.plot_book.forget(self.no_plots)
+            self.placeholder_shown = False
+        elif not self.plot_tabs and not self.placeholder_shown:
+            self.plot_book.add(self.no_plots, text='Plots')
+            self.placeholder_shown = True
+        if self.plot_tabs: # keep the tab the user was on, else show the first plot
+            keep = showing if showing in self.plot_tabs else min(self.plot_tabs)
+            self.plot_book.select(self.plot_tabs[keep]['frame'])
+        self.draw_plot()
+
+    def draw_plot(self):
+        """Draw the visible plot tab (only that one, so many chosen plots stay cheap)."""
+        current = self.plot_book.select()
+        for tab in self.plot_tabs.values():
+            if str(tab['frame']) == current and not tab['drawn']:
+                if self.colors['dark']:
+                    darken_figure(tab['figure'], self.colors['background'], '#ecebe8', '#ecebe8')
+                try:
+                    tab['figure'].tight_layout()
+                except (ValueError, RuntimeError):
+                    pass # some figures (3D, twin axes) cannot be tightened
+                tab['canvas'].draw()
+                tab['drawn'] = True
 
     def tab_key(self, key):
         return next(f[5] for f in FIELDS if f[0] == key)
@@ -443,12 +610,13 @@ class Panel:
                 self.vars[key].set(default)
             for key in RESULT_KEYS:
                 self.entries[key].var.set('N/A')
-            for key, label, on in SWING_PLOTS + BALL_PLOTS:
+            for key, label, on, number in SWING_PLOTS + BALL_PLOTS:
                 self.entries[key].set(on)
         finally:
             self.busy = False
         self.flow.reset()
         self.message = None
+        self.sync_plots()
         self.refresh()
 
     # --- Display --------------------------------------------------------------------------------
@@ -528,7 +696,7 @@ if __name__ == '__main__':
    entries = panel.entries
 
    root.update_idletasks()
-   root.minsize(1000, 640)
-   root.geometry("1220x800")
+   root.minsize(1100, 720)
+   root.geometry("1360x900")
 
    root.mainloop()

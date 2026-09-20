@@ -92,13 +92,19 @@ class ResultField:
 # runs its steps in a batch, which shows every new plot once at the end.
 #
 _batch = False
+_embedded = False
+
+def use_embedded_plots():
+    """The panel shows the figures itself (in tabs), so no plot windows are opened."""
+    global _embedded
+    _embedded = True
 
 def begin_plots(*numbers):
     for n in numbers:
         plt.close(n)
 
 def show_plots():
-    if not _batch:
+    if not _batch and not _embedded:
         plt.show(block=False) # plot windows stay open while the panel keeps working
 
 @contextmanager
@@ -109,5 +115,5 @@ def batch_plots():
         yield
     finally:
         _batch = False
-    if plt.get_fignums():
+    if plt.get_fignums() and not _embedded:
         plt.show(block=False)

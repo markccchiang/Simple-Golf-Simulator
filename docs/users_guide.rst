@@ -43,8 +43,7 @@ The Main Panel
 --------------
 
 The window has two parts. On the left, the inputs are grouped in three tabs: **Golfer & club**,
-**Swing** and **Ball & conditions**. On the right are the steps to run, the results and the choice of
-plots. Default values are pre-filled, and each input keeps the item number used in this guide.
+**Swing** and **Ball & conditions**. On the right are the steps to run, the results and the plots. Default values are pre-filled, and each input keeps the item number used in this guide.
 
 Running the Simulation
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -179,8 +178,13 @@ The results are shown in six cards:
 Plots
 ^^^^^
 
-Choose the plots to show under **Plots to show**; each opens in its own window when its step runs, and
-replaces that step's earlier plots.
+Plots appear in tabs below the results, one tab per plot, drawn when its step runs. Each tab has the
+usual toolbar to pan, zoom and save the plot as an image file. In a dark desktop appearance the plots
+are drawn dark to match the window; saved image files and the figures of the case scripts are
+unaffected.
+
+Click **Plots to show** to choose which plots to draw (the button shows how many are chosen). Swing
+tracks, angles, clubhead speed and the ball's side view are chosen by default.
 
 - *Swing* -- swing tracks, angles, angular velocities, angular accelerations, clubhead speed, torques,
   arm length, 1st and 2nd moments, and the wrist-torque search (:math:`\beta` vs :math:`-Q_\beta`).

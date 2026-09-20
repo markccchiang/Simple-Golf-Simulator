@@ -42,7 +42,7 @@ sudo dnf install python3-tkinter
 uv run src/Main.py        # or: python src/Main.py
 ```
 
-Click **Run all steps** to optimize the wrist torque, simulate the swing, compute the launch conditions and simulate the ball flight in one go; the results appear in cards next to the inputs, and the chosen plots open in their own windows. After you change an input, the affected results are marked stale until the next run, which re-runs only the steps that need it.
+Click **Run all steps** to optimize the wrist torque, simulate the swing, compute the launch conditions and simulate the ball flight in one go; the results appear in cards next to the inputs, and the chosen plots are drawn in tabs below them. After you change an input, the affected results are marked stale until the next run, which re-runs only the steps that need it.
 
 ## Features
 
