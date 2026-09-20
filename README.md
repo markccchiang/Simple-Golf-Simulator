@@ -107,6 +107,8 @@ uv run --group docs sphinx-build -b html . _build/html
 
 Then open `docs/_build/html/index.html` in your browser.
 
+`Simple-Golf-Simulator-Report.pdf` is the original report (version 1.0, 2016), kept as published: it has the full case studies and figures, but predates Solution 4, the redesigned panel and the current Case 1 numbers. **The Sphinx documentation is the up-to-date reference.**
+
 ## Project Structure
 
 | File | Description |
